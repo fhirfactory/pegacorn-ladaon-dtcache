@@ -1,9 +1,15 @@
 package net.fhirfactory.pegacorn.ladon.dtcache.accessors;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import net.fhirfactory.pegacorn.deployment.topology.map.standalone.StandaloneSampleDeploymentSolution;
-import net.fhirfactory.pegacorn.fhir.r4.samples.PatientSetFactory;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import javax.inject.Inject;
+
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Patient;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -22,14 +28,10 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.assertTrue;
+import ca.uhn.fhir.parser.IParser;
+import net.fhirfactory.pegacorn.deployment.topology.map.standalone.StandaloneSampleDeploymentSolution;
+import net.fhirfactory.pegacorn.fhir.r4.samples.PatientSetFactory;
+import net.fhirfactory.pegacorn.util.FhirUtil;
 
 @RunWith(Arquillian.class)
 public class PatientAccessorTest {
@@ -99,8 +101,7 @@ public class PatientAccessorTest {
             patientIdSet.add(newId);
         }
         boolean testSuccess = true;
-        FhirContext contextR4 = FhirContext.forR4();
-        IParser parserR4 = contextR4.newJsonParser();
+        IParser parserR4 = FhirUtil.getInstance().getJsonParser();
         int counter = 0;
         for (IdType patientId : patientIdSet) {
             Patient retrievedPatient = patientAccessor.getResourceById(patientId);

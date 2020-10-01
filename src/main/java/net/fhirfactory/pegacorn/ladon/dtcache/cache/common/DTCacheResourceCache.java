@@ -21,23 +21,24 @@
  */
 package net.fhirfactory.pegacorn.ladon.dtcache.cache.common;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
+import java.util.Enumeration;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.PostConstruct;
+
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Enumeration;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
+import ca.uhn.fhir.parser.IParser;
+import net.fhirfactory.pegacorn.util.FhirUtil;
 
 public class DTCacheResourceCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(DTCacheResourceCache.class);
     private ConcurrentHashMap<IdType, Resource> resourceCache;
-    private FhirContext contextR4;
     IParser parserR4;
     boolean isInitialised;
 
@@ -50,8 +51,7 @@ public class DTCacheResourceCache {
     protected void initialise() {
         if (!this.isInitialised) {
             LOG.debug(".initialise(): Initialising the FHIR Parser framework");
-            contextR4 = FhirContext.forR4();
-            parserR4 = contextR4.newJsonParser();
+            parserR4 = FhirUtil.getInstance().getJsonParser();
             this.isInitialised = true;
         }
     }

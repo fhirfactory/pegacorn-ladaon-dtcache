@@ -1,12 +1,21 @@
 package net.fhirfactory.pegacorn.ladon.dtcache.accessors.common;
 
-import ca.uhn.fhir.context.FhirContext;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.IdType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.common.model.FDN;
 import net.fhirfactory.pegacorn.common.model.RDN;
 import net.fhirfactory.pegacorn.datasets.fhir.r4.internal.topics.FHIRElementTopicIDBuilder;
 import net.fhirfactory.pegacorn.deployment.topology.manager.DeploymentTopologyIM;
 import net.fhirfactory.pegacorn.ladon.processingplant.LadonProcessingPlant;
+import net.fhirfactory.pegacorn.petasos.audit.model.PetasosParcelAuditTrailEntry;
+import net.fhirfactory.pegacorn.petasos.core.sta.brokers.PetasosSTAServicesAuditOnlyBroker;
 import net.fhirfactory.pegacorn.petasos.model.topics.TopicToken;
 import net.fhirfactory.pegacorn.petasos.model.topology.NodeElement;
 import net.fhirfactory.pegacorn.petasos.model.topology.NodeElementFunctionToken;
@@ -17,16 +26,7 @@ import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.petasos.model.wup.WUPIdentifier;
 import net.fhirfactory.pegacorn.petasos.model.wup.WUPJobCard;
-import org.hl7.fhir.r4.model.DomainResource;
-import org.hl7.fhir.r4.model.IdType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
-import net.fhirfactory.pegacorn.petasos.audit.model.PetasosParcelAuditTrailEntry;
-import net.fhirfactory.pegacorn.petasos.core.sta.brokers.PetasosSTAServicesAuditOnlyBroker;
+import net.fhirfactory.pegacorn.util.FhirUtil;
 
 abstract public class AccessorBase {
 
@@ -42,7 +42,6 @@ abstract public class AccessorBase {
     private String version;
     private boolean isInitialised;
 
-    private FhirContext contextR4;
     private IParser parserR4;
 
     public AccessorBase() {
@@ -72,8 +71,7 @@ abstract public class AccessorBase {
         LOG.debug(".initialise(): Entry");
         if (!isInitialised) {
             LOG.trace(".initialise(): AccessBase is NOT initialised");
-            this.contextR4 = FhirContext.forR4();
-            this.parserR4 = contextR4.newJsonParser();
+            this.parserR4 = FhirUtil.getInstance().getJsonParser();
             this.isInitialised = true;
             ladonPlant.initialisePlant();
             this.node = specifyNode();
