@@ -13,6 +13,27 @@
     <name>Pegacorn :: Ladon :: Digital Twin Cache</name>
     <packaging>jar</packaging>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <prerequisites>
+        <maven>3.5.0</maven>
+    </prerequisites>
+
+    <developers>
+        <developer>
+            <id>mahunter</id>
+        </developer>
+        <developer>
+            <id>jrschremmer</id>
+        </developer>
+    </developers>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -289,6 +310,7 @@
                 </dependency>
             </dependencies>
             <build>
+              <pluginManagement>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -358,6 +380,7 @@
                         </configuration>
                     </plugin>
                 </plugins>
+              </pluginManagement>
             </build>
         </profile>
     </profiles>
