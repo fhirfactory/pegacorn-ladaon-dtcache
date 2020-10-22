@@ -26,15 +26,15 @@ import net.fhirfactory.pegacorn.ladon.dtcache.accessors.common.AccessorBase;
 import net.fhirfactory.pegacorn.ladon.dtcache.cache.DocumentReferenceCache;
 import net.fhirfactory.pegacorn.ladon.dtcache.cache.GroupCache;
 import net.fhirfactory.pegacorn.petasos.audit.model.PetasosParcelAuditTrailEntry;
-import org.hl7.fhir.r4.model.DocumentReference;
-import org.hl7.fhir.r4.model.Group;
-import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.swing.text.Document;
+import java.util.Date;
+import java.util.List;
 
 @ApplicationScoped
 public class DocumentReferenceAccessor extends AccessorBase {
@@ -100,5 +100,14 @@ public class DocumentReferenceAccessor extends AccessorBase {
     @Override
     protected String specifyVersion() {
         return (ACCESSOR_VERSION);
+    }
+
+    //
+    // Search Functions
+    //
+
+    public List<DocumentReference> searchFor(CodeableConcept documentType, Date effectiveRangeStartDateTime, boolean startDateTimeIsInclusive, Date effectiveRangeEndDateTime, boolean endDateTimeIsInclusive  ){
+        List<DocumentReference> docRefList = docrefCache.searchFor(documentType,effectiveRangeStartDateTime, startDateTimeIsInclusive, effectiveRangeEndDateTime, endDateTimeIsInclusive);
+        return(docRefList);
     }
 }
