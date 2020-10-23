@@ -87,32 +87,37 @@ public class DocumentReferenceCache extends DTCacheResourceCache {
         for(Resource currentResource: getAllResources()){
             DocumentReference currentDocRef = (DocumentReference)currentResource;
             boolean afterStartDateTime = false;
-            boolean beforeStartDateTime = false;
+            boolean beforeEndDateTime = false;
             boolean typeMatches = false;
             if(currentDocRef.getType().hasCoding(documentType.getCodingFirstRep().getSystem(), documentType.getCodingFirstRep().getCode())){
                 typeMatches = true;
             }
             if(typeMatches){
-                if(startDateTimeIsInclusive){
+                afterStartDateTime = effectiveRangeStartDateTime.before(currentDocRef.getDate());
+                if(!afterStartDateTime && startDateTimeIsInclusive){
                     if(effectiveRangeStartDateTime.compareTo(currentDocRef.getDate()) == 0){
                         afterStartDateTime = true;
                     }
                 }
-                if(effectiveRangeStartDateTime.before(currentDocRef.getDate())){
-                    afterStartDateTime = true;
-                }
                 if(afterStartDateTime){
-                    if(endDateTimeIsInclusive){
-                        if(effectiveRangeEndDateTime.compareTo(currentDocRef.getDate()) == 0){
-                            beforeStartDateTime = true;
+                    if (effectiveRangeEndDateTime == null) {
+                        beforeEndDateTime = true;
+                    } else {
+                        beforeEndDateTime = effectiveRangeEndDateTime.after(currentDocRef.getDate());
+                        if(!beforeEndDateTime && endDateTimeIsInclusive){
+                            if(effectiveRangeEndDateTime.compareTo(currentDocRef.getDate()) == 0){
+                                beforeEndDateTime = true;
+                            }
                         }
                     }
-                    if(effectiveRangeEndDateTime.after(currentDocRef.getDate())){
-                        beforeStartDateTime = true;
-                    }
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(".searchFor typeMatches=" + typeMatches + ", currentDocRef.getDate()=" + currentDocRef.getDate() + 
+                            ", effectiveRangeStartDateTime=" + effectiveRangeStartDateTime + ", effectiveRangeEndDateTime=" + effectiveRangeEndDateTime +
+                            ", afterStartDateTime=" + afterStartDateTime + ", beforeEndDateTime=" + beforeEndDateTime);
                 }
             }
-            if(typeMatches && afterStartDateTime && beforeStartDateTime){
+            if(typeMatches && afterStartDateTime && beforeEndDateTime){
                 outputList.add(currentDocRef);
             }
         }
