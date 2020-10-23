@@ -22,12 +22,17 @@
 package net.fhirfactory.pegacorn.ladon.dtcache.cache;
 
 import net.fhirfactory.pegacorn.ladon.dtcache.cache.common.DTCacheResourceCache;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -71,6 +76,52 @@ public class DocumentReferenceCache extends DTCacheResourceCache {
         IdType removedResourceId = new IdType(id);
         LOG.debug(".removeDocumentReference(): DocumentReference removed, removedResourceId (IdType) --> {}", removedResourceId);
         return(removedResourceId);
+    }
+
+    //
+    // Search Functions
+    //
+
+    public List<DocumentReference> searchFor(CodeableConcept documentType, Date effectiveRangeStartDateTime, boolean startDateTimeIsInclusive, Date effectiveRangeEndDateTime, boolean endDateTimeIsInclusive ){
+        List<DocumentReference> outputList = new ArrayList<DocumentReference>();
+        for(Resource currentResource: getAllResources()){
+            DocumentReference currentDocRef = (DocumentReference)currentResource;
+            boolean afterStartDateTime = false;
+            boolean beforeEndDateTime = false;
+            boolean typeMatches = false;
+            if(currentDocRef.getType().hasCoding(documentType.getCodingFirstRep().getSystem(), documentType.getCodingFirstRep().getCode())){
+                typeMatches = true;
+            }
+            if(typeMatches){
+                afterStartDateTime = effectiveRangeStartDateTime.before(currentDocRef.getDate());
+                if(!afterStartDateTime && startDateTimeIsInclusive){
+                    if(effectiveRangeStartDateTime.compareTo(currentDocRef.getDate()) == 0){
+                        afterStartDateTime = true;
+                    }
+                }
+                if(afterStartDateTime){
+                    if (effectiveRangeEndDateTime == null) {
+                        beforeEndDateTime = true;
+                    } else {
+                        beforeEndDateTime = effectiveRangeEndDateTime.after(currentDocRef.getDate());
+                        if(!beforeEndDateTime && endDateTimeIsInclusive){
+                            if(effectiveRangeEndDateTime.compareTo(currentDocRef.getDate()) == 0){
+                                beforeEndDateTime = true;
+                            }
+                        }
+                    }
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(".searchFor typeMatches=" + typeMatches + ", currentDocRef.getDate()=" + currentDocRef.getDate() + 
+                            ", effectiveRangeStartDateTime=" + effectiveRangeStartDateTime + ", effectiveRangeEndDateTime=" + effectiveRangeEndDateTime +
+                            ", afterStartDateTime=" + afterStartDateTime + ", beforeEndDateTime=" + beforeEndDateTime);
+                }
+            }
+            if(typeMatches && afterStartDateTime && beforeEndDateTime){
+                outputList.add(currentDocRef);
+            }
+        }
+        return(outputList);
     }
 
 }

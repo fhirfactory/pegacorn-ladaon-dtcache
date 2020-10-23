@@ -21,7 +21,9 @@
  */
 package net.fhirfactory.pegacorn.ladon.dtcache.cache.common;
 
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -92,5 +94,9 @@ public class DTCacheResourceCache {
         } else {
             return (null);
         }
+    }
+
+    public Collection<Resource> getAllResources(){
+        return(resourceCache.values());
     }
 }
