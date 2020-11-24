@@ -274,7 +274,7 @@
         </dependency>
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-platform-enablers-hapifhir</artifactId>
+            <artifactId>pegacorn-buildingblocks-edge</artifactId>
             <version>1.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

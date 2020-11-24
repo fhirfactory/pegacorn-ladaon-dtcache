@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers;
 
 import net.fhirfactory.pegacorn.deployment.names.PegacornLadonVirtualDBPersistenceComponentNames;
-import net.fhirfactory.pegacorn.hapifhir.clients.JPAServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.hapifhir.clients.JPAServerSecureAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
