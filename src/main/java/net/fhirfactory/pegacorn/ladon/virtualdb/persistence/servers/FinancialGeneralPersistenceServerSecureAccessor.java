@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers;
 
-import net.fhirfactory.pegacorn.deployment.names.PegacornFHIRPlaceAsVirtualDBPersistenceComponentNames;
+import net.fhirfactory.pegacorn.deployment.names.PegacornLadonVirtualDBPersistenceComponentNames;
 import net.fhirfactory.pegacorn.hapifhir.clients.JPAServerSecureAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class FinancialGeneralPersistenceServerSecureAccessor extends JPAServerSe
     protected Logger getLogger(){return(LOG);}
 
     @Inject
-    private PegacornFHIRPlaceAsVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
+    private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
     protected String specifyTopologySubsystemService() {

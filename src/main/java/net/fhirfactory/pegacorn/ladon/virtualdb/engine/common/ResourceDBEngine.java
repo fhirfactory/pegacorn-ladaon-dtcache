@@ -66,14 +66,20 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
 
     @Override
     public VirtualDBMethodOutcome createResource(Resource resourceToCreate) {
+        getLogger().debug(".createResource(): Entry, resourceToCreate --> {}", resourceToCreate);
         if(!resourceToCreate.hasId()){
+            getLogger().trace(".createResource(): Resource did not have an Id, so creating one!");
             IdType newId = new IdType(resourceToCreate.getResourceType().getPath(), UUID.randomUUID().toString());
             resourceToCreate.setId(newId);
+            getLogger().trace(".createResource(): Resource Id created and added to Resource, Id --> {}", newId);
         }
         VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().createResource(resourceToCreate);
-        if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.CREATION_FINISH) {
+        if (outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.CREATION_FINISH)) {
+            getLogger().trace(".createResource(): Resource successfully created in the MDR (Set), now adding it to the Cache & VirtualDB");
+            VirtualDBMethodOutcome virtualDBOutcome = getPersistenceService().standardCreateResource(resourceToCreate);
             VirtualDBMethodOutcome cacheCreateOutcome = getDBCache().createResource(resourceToCreate);
         }
+        getLogger().debug(".createResource(): Resource created, exiting");
         return (outcome);
     }
 

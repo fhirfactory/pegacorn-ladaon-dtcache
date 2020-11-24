@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import net.fhirfactory.pegacorn.deployment.names.PegacornFHIRPlaceAsVirtualDBPersistenceComponentNames;
+import net.fhirfactory.pegacorn.deployment.names.PegacornLadonVirtualDBPersistenceComponentNames;
 import net.fhirfactory.pegacorn.deployment.topology.manager.DeploymentTopologyIM;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.mdr.ResourceSoTConduitActionResponse;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
@@ -50,7 +50,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
     private DeploymentTopologyIM deploymentTopologyIM;
 
     @Inject
-    private PegacornFHIRPlaceAsVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
+    private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     public PersistenceServiceBase() {
         super();
@@ -78,7 +78,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
         return (ladonProcessingPlant);
     }
 
-    protected PegacornFHIRPlaceAsVirtualDBPersistenceComponentNames getVirtualDBPersistenceNames(){return(virtualDBPersistenceNames);}
+    protected PegacornLadonVirtualDBPersistenceComponentNames getVirtualDBPersistenceNames(){return(virtualDBPersistenceNames);}
 
     //
     // Database Transactions

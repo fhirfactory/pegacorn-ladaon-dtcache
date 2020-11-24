@@ -226,9 +226,9 @@ abstract public class AccessorBase {
     private NodeElement specifyNode() {
         getLogger().debug(".specifyNode(): Entry");
         NodeElementIdentifier ladonInstanceIdentifier = ladonPlant.getProcessingPlantNodeId();
-        getLogger().trace(".specifyNode(): retrieved Ladon-ProcessingPlant Identifier --> {}", ladonInstanceIdentifier);
+        getLogger().info(".specifyNode(): retrieved Ladon-ProcessingPlant Identifier --> {}", ladonInstanceIdentifier);
         if (ladonInstanceIdentifier == null) {
-            getLogger().debug(".specifyNode(): Oh No!");
+            getLogger().error(".specifyNode(): Oh No!");
         }
         FDN virtualdbFDN = new FDN(ladonInstanceIdentifier);
         virtualdbFDN.appendRDN(new RDN(NodeElementTypeEnum.WORKSHOP.getNodeElementType(), "VirtualDB"));
@@ -255,7 +255,7 @@ abstract public class AccessorBase {
         accessor.setContainingElementID(virtualdb.getNodeInstanceID());
         getLogger().trace(".specifyNode(): Now registering the Node");
         topologyProxy.registerNode(accessor);
-        getLogger().debug(".specifyNode(): Exit, accessorInstanceIdentifier (NodeElementIdentifier) --> {}", accessorInstanceIdentifier);
+        getLogger().info(".specifyNode(): Exit, accessorInstanceIdentifier (NodeElementIdentifier) --> {}", accessorInstanceIdentifier);
         return (accessor);
     }
 
@@ -301,7 +301,7 @@ abstract public class AccessorBase {
     }
 
     public VirtualDBMethodOutcome createResource(Resource newResource){
-        getLogger().debug(".createResource(): Entry, newResource (CareTeam) --> {}", newResource);
+        getLogger().debug(".createResource(): Entry, newResource (Resource) --> {}", newResource);
         Identifier bestIdentifier = virtualDBKeyManagement.getBestIdentifier(resolveIdentifierList(newResource));
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(bestIdentifier, newResource, VirtualDBActionTypeEnum.CREATE);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().createResource(newResource);

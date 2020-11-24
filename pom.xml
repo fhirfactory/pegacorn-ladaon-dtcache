@@ -10,7 +10,7 @@
     </parent>
     
     <artifactId>pegacorn-ladon-dtcache</artifactId>
-    <name>Pegacorn :: Ladon :: Digital Twin Cache</name>
+    <name>Pegacorn :: Ladon :: Virtual Database</name>
     <packaging>jar</packaging>
 
     <licenses>

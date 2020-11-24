@@ -86,7 +86,7 @@ public class PatientAccessor extends AccessorBase {
     }
 
     /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
+     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
      * access the specific Resource.
      *
      * @param identifier
@@ -102,7 +102,7 @@ public class PatientAccessor extends AccessorBase {
     }
 
     /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
+     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
      * access the specific Resource.
      *
      * @param id

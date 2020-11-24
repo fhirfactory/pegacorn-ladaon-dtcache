@@ -21,11 +21,13 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.accessors;
 
+import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.accessors.common.AccessorBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.DocumentReferenceDBEngine;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.common.ResourceDBEngine;
+import net.fhirfactory.pegacorn.util.FhirUtil;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
@@ -61,11 +63,26 @@ public class DocumentReferenceAccessor extends AccessorBase {
 
     @Override
     protected List<Identifier> resolveIdentifierList(Resource resource) {
+        LOG.debug(".resolveIdentifierList(): Entry");
         if(resource == null){
+            LOG.debug(".resolveIdentifierList: Exit, resource is empty!");
             return(new ArrayList<>());
         }
         DocumentReference docRef = (DocumentReference)resource;
+        if(docRef.hasMasterIdentifier()){
+            ArrayList<Identifier> singleMasterIdentifierList = new ArrayList<>();
+            singleMasterIdentifierList.add(docRef.getMasterIdentifier());
+            LOG.debug(".resolveIdentifierList: Exit, has MasterIdentifier, so returning it");
+            return(singleMasterIdentifierList);
+        }
+        if(LOG.isDebugEnabled()){
+            FhirUtil fhirUtil = FhirUtil.getInstance();
+            IParser jsonParser = fhirUtil.getJsonParser().setPrettyPrint(true);
+            String resourceString = jsonParser.encodeResourceToString(docRef);
+            LOG.debug(".resolveIdentifierList(): Resource --> {}", resourceString);
+        }
         List<Identifier> identifierList = docRef.getIdentifier();
+        LOG.debug(".resolveIdentifierList(): Exit, returning list of identifiers, count --> {}", identifierList.size());
         return(identifierList);
     }
 
@@ -85,7 +102,7 @@ public class DocumentReferenceAccessor extends AccessorBase {
     }
 
     /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
+     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
      * access the specific Resource.
      *
      * @param identifier
