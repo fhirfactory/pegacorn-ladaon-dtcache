@@ -48,6 +48,7 @@ import net.fhirfactory.pegacorn.petasos.model.wup.WUPIdentifier;
 import net.fhirfactory.pegacorn.petasos.model.wup.WUPJobCard;
 import net.fhirfactory.pegacorn.util.FhirUtil;
 
+import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +129,7 @@ abstract public class AccessorBase {
      * @param action
      * @return
      */
-    protected PetasosParcelAuditTrailEntry beginTransaction(Map<Property, Element> parameterSet, VirtualDBActionTypeEnum action){
+    protected PetasosParcelAuditTrailEntry beginTransaction(Map<Property, Serializable> parameterSet, VirtualDBActionTypeEnum action){
         String searchSummary = "Search Criteria(";
         Set<Property> propertySet = parameterSet.keySet();
         if(propertySet.isEmpty()){
@@ -342,7 +343,13 @@ abstract public class AccessorBase {
         return(outcome);
     }
 
-    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Map<Property, Element> parameterSet) {
+    /**
+     *
+     * @param resourceType
+     * @param parameterSet
+     * @return
+     */
+    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Map<Property, Serializable> parameterSet) {
         getLogger().debug(".getResourcesViaSearchCriteria(): Entry, parameterSet --> {}", parameterSet);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(parameterSet, VirtualDBActionTypeEnum.SEARCH);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourcesViaSearchCriteria(resourceType, parameterSet);

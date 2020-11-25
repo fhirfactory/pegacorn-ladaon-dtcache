@@ -31,6 +31,7 @@ import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceSe
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -139,7 +140,7 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     }
 
     @Override
-    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Map<Property, Element> parameterSet) {
+    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Map<Property, Serializable> parameterSet) {
         VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().getResourcesViaSearchCriteria(resourceType, parameterSet);
         updateCache(outcome);
         return(outcome);
