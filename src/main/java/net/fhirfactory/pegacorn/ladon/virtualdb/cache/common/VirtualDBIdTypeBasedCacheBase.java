@@ -160,7 +160,7 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
      */
     private VirtualDBMethodOutcome deleteResourceFromCache(IdType id){
         // Perform house-keeping on the Cache
-        purgeResourcesFromCache();
+       // purgeResourcesFromCache();
         // House-keeping done
 
         if(id == null){
