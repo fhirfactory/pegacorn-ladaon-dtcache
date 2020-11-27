@@ -159,10 +159,6 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
      * @return A VirtualDBMethodOutcome instance detailing the success (or otherwise) of the Resource removal activity.
      */
     private VirtualDBMethodOutcome deleteResourceFromCache(IdType id){
-        // Perform house-keeping on the Cache
-        purgeResourcesFromCache();
-        // House-keeping done
-
         if(id == null){
             getLogger().debug(".deleteResourceFromCache(): id (IdType) is null, failing out");
             VirtualDBMethodOutcome vdbOutcome = generateBadAttributeOutcome("deleteResourceFromCache", VirtualDBActionTypeEnum.DELETE, VirtualDBActionStatusEnum.DELETE_FAILURE, "Parameter identifier (Identifier) content is invalid");
