@@ -231,7 +231,9 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
             boolean found = false;
             List<Identifier> identifiers = resolveIdentifierSet(currentResourceEntry.getResource());
             for(Identifier currentIdentifier: identifiers){
-                if(identifier.equalsShallow(currentIdentifier)){
+                boolean systemIsSame = identifier.getSystem().equals(currentIdentifier.getSystem());
+                boolean valueIsSame = identifier.getValue().equals(currentIdentifier.getValue());
+                if(systemIsSame && valueIsSame){
                     found = true;
                     foundResourceEntry = currentResourceEntry;
                     break;
@@ -246,7 +248,7 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
             vdbOutcome.setCreated(false);
             vdbOutcome.setIdentifier(identifier);
             vdbOutcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
-            vdbOutcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
+            vdbOutcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE);
             OperationOutcome opOutcome = new OperationOutcome();
             OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
             newOutcomeComponent.setCode(OperationOutcome.IssueType.NOTFOUND);

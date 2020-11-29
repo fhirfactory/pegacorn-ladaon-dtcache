@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers;
 
 import net.fhirfactory.pegacorn.deployment.names.PegacornLadonVirtualDBPersistenceComponentNames;
-import net.fhirfactory.pegacorn.platform.hapifhir.clients.JPAServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class ClinicalCareProvisionPersistenceServerSecureAccessor extends JPAServerSecureAccessor {
+public class ClinicalCareProvisionPersistenceServerSecureAccessor extends PegacornInternalFHIRClientServices {
     private static final Logger LOG = LoggerFactory.getLogger(ClinicalCareProvisionPersistenceServerSecureAccessor.class);
 
     @Override
@@ -40,27 +40,27 @@ public class ClinicalCareProvisionPersistenceServerSecureAccessor extends JPASer
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
-    protected String specifyTopologySubsystemService() {
+    protected String specifyFHIRServerSubsystemService() {
         return (virtualDBPersistenceNames.getClinicalCareProvisionVirtualDBPersistenceService());
     }
 
     @Override
-    protected String specifyTopologySubsystemProcessingPlant() {
+    protected String specifyFHIRServerProcessingPlant() {
         return (virtualDBPersistenceNames.getClinicalCareProvisionVirtualDBPersistenceProcessingPlant());
     }
 
     @Override
-    protected String specifyTopologySubsystemName() {
+    protected String specifyFHIRServerSubsystemName() {
         return (virtualDBPersistenceNames.getClinicalCareProvisionVirtualDBPersistenceSubsystem());
     }
 
     @Override
-    protected String specifyTopologySubsystemVersion() {
+    protected String specifyFHIRServerSubsystemVersion() {
         return (virtualDBPersistenceNames.getClinicalCareProvisionVirtualDBPersistenceSubsystemVersion());
     }
 
     @Override
-    protected String specifyTopologyJPAServerEndpointName() {
+    protected String specifyFHIRServerServerEndpointName() {
         return (virtualDBPersistenceNames.getClinicalCareProvisionVirtualDBPersistenceEndpointFhirApi());
     }
 }

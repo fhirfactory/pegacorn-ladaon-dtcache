@@ -49,7 +49,6 @@ import net.fhirfactory.pegacorn.petasos.model.wup.WUPJobCard;
 import net.fhirfactory.pegacorn.util.FhirUtil;
 
 import java.io.Serializable;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,14 +188,14 @@ abstract public class AccessorBase {
 
     /**
      *
-     * @param fhirResource
+     * @param resultSet
      * @param returnedResourceCount
      * @param action
      * @param success
      * @param startingTransaction
      */
-    protected void endTransaction(Resource fhirResource, int returnedResourceCount, VirtualDBActionTypeEnum action, boolean success, PetasosParcelAuditTrailEntry startingTransaction){
-        String searchAnswerCount = "Search(ResultCount="+returnedResourceCount+")";
+    protected void endSearchTransaction(Bundle resultSet, int returnedResourceCount, VirtualDBActionTypeEnum action, boolean success, PetasosParcelAuditTrailEntry startingTransaction){
+        String searchAnswerCount = buildSearchResultString(resultSet);
         auditEntryManager.endTransaction(searchAnswerCount, getResourceTypeName(), null,action,success,startingTransaction,this.accessorIdentifier, this.version);
     }
 
@@ -261,7 +260,7 @@ abstract public class AccessorBase {
     }
 
     public VirtualDBMethodOutcome getResource(Identifier identifier) {
-        getLogger().debug(".getResourceById(): Entry, identifier (Identifier) --> {}", identifier);
+        getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(identifier);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH) {
@@ -269,12 +268,12 @@ abstract public class AccessorBase {
         } else {
             this.endTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
         }
-        getLogger().debug(".getResourceById(): Exit, Resource retrieved, outcome --> {}", outcome);
+        getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
         return (outcome);
     }
 
     public VirtualDBMethodOutcome getResource(IdType id) {
-        getLogger().debug(".getResourceById(): Entry, id (IdType) --> {}", id);
+        getLogger().debug(".getResource(): Entry, id (IdType) --> {}", id);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(id, null, VirtualDBActionTypeEnum.REVIEW);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(id);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH) {
@@ -282,22 +281,22 @@ abstract public class AccessorBase {
         } else {
             this.endTransaction(id, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
         }
-        getLogger().debug(".getResourceById(): Exit, Resource retrieved, outcome --> {}", outcome);
+        getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
         return (outcome);
     }
 
 
     public VirtualDBMethodOutcome getResourceNoAudit(Identifier identifier) {
-        getLogger().debug(".getResourceById(): Entry, identifier (Identifier) --> {}", identifier);
+        getLogger().debug(".getResourceNoAudit(): Entry, identifier (Identifier) --> {}", identifier);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(identifier);
-        getLogger().debug(".getResourceById(): Exit, Resource retrieved, outcome --> {}", outcome);
+        getLogger().debug(".getResourceNoAudit(): Exit, Resource retrieved, outcome --> {}", outcome);
         return (outcome);
     }
 
     public VirtualDBMethodOutcome getResourceNoAudit(IdType id) {
-        getLogger().debug(".getResourceById(): Entry, id (Identifier) --> {}", id);
+        getLogger().debug(".getResourceNoAudit(): Entry, id (Identifier) --> {}", id);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(id);
-        getLogger().debug(".getResourceById(): Exit, Resource retrieved, outcome --> {}", outcome);
+        getLogger().debug(".getResourceNoAudit(): Exit, Resource retrieved, outcome --> {}", outcome);
         return (outcome);
     }
 
@@ -354,21 +353,46 @@ abstract public class AccessorBase {
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(parameterSet, VirtualDBActionTypeEnum.SEARCH);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourcesViaSearchCriteria(resourceType, parameterSet);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.SEARCH_FAILURE) {
-            endTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
+            endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
             return(outcome);
         }
         Resource searchResultResource = (Resource)outcome.getResource();
         if( searchResultResource == null){
-            endTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
+            endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
             return(outcome);
         }
         if(searchResultResource.getResourceType() == ResourceType.Bundle){
             Bundle searchResultBundle = (Bundle)searchResultResource;
-            this.endTransaction(null, searchResultBundle.getTotal(), VirtualDBActionTypeEnum.SEARCH, true, currentTransaction);
+            this.endSearchTransaction(searchResultBundle, searchResultBundle.getTotal(), VirtualDBActionTypeEnum.SEARCH, true, currentTransaction);
         } else {
-                this.endTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
+                this.endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
         }
         return(outcome);
     }
+
+    private String buildSearchResultString(Bundle searchResult){
+        if(searchResult == null) {
+            return("Search Failed");
+        }
+        if(searchResult.getTotal() == 0){
+            return("Search Succeeded: Result Count = 0");
+        }
+        int resultCount = searchResult.getTotal();
+        String resultString = "Search Succeeded: Result Count = " + resultCount + ": Entries --> ";
+        for(Bundle.BundleEntryComponent currentBundleEntry: searchResult.getEntry()){
+            Resource currentResource = currentBundleEntry.getResource();
+            if(currentResource.hasId()){
+                resultString = resultString + currentResource.getId();
+            } else {
+                resultString = resultString + "[Resource Has No Id]";
+            }
+            if(resultCount > 1) {
+                resultString = resultString + ", ";
+            }
+            resultCount -= 1;
+        }
+        return(resultString);
+    }
+
 
 }

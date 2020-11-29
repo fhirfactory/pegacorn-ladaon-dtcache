@@ -68,17 +68,25 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     @Override
     public VirtualDBMethodOutcome createResource(Resource resourceToCreate) {
         getLogger().debug(".createResource(): Entry, resourceToCreate --> {}", resourceToCreate);
+        IdType newId = null;
         if(!resourceToCreate.hasId()){
             getLogger().trace(".createResource(): Resource did not have an Id, so creating one!");
-            IdType newId = new IdType(resourceToCreate.getResourceType().getPath(), UUID.randomUUID().toString());
+            newId = new IdType();
+            newId.setValueAsString(resourceToCreate.getResourceType().getPath()+"/"+UUID.randomUUID().toString());
             resourceToCreate.setId(newId);
             getLogger().trace(".createResource(): Resource Id created and added to Resource, Id --> {}", newId);
+        } else {
+            newId = resourceToCreate.getIdElement();
         }
         VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().createResource(resourceToCreate);
         if (outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.CREATION_FINISH)) {
             getLogger().trace(".createResource(): Resource successfully created in the MDR (Set), now adding it to the Cache & VirtualDB");
             VirtualDBMethodOutcome virtualDBOutcome = getPersistenceService().standardCreateResource(resourceToCreate);
+            resourceToCreate.setId(virtualDBOutcome.getId());
             VirtualDBMethodOutcome cacheCreateOutcome = getDBCache().createResource(resourceToCreate);
+            if(!newId.equals(outcome.getResource().getIdElement())){
+                getLogger().error(".createResource(): Server Overwrote the Id! Intended Value --> {}, value from Server --> {}", newId, outcome.getId());
+            }
         }
         getLogger().debug(".createResource(): Resource created, exiting");
         return (outcome);
@@ -86,10 +94,13 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
 
     @Override
     public VirtualDBMethodOutcome getResource(Identifier identifier) {
+        getLogger().trace(".getResource(): Entry");
         VirtualDBMethodOutcome outcome = getDBCache().getResource(identifier);
-        if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FAILURE) {
+        if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE) {
+            getLogger().trace(".getResource(): Resource not in Cache, going to Sources-of-Truth");
             outcome = getSourceOfTruthAggregator().reviewResource(identifier);
         }
+        getLogger().trace(".getResource(): Exit");
         return (outcome);
     }
 

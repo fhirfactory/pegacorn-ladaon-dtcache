@@ -163,11 +163,14 @@ public class VirtualDBAuditEntryManager {
                     LOG.trace(".endTransaction(): Successful Create --> Logging the outcome");
                     auditTrailPayload = "Action: Create --> ";
                     break;
-                case DELETE: {
+                case DELETE:
                     LOG.trace(".endTransaction(): Successful Delete --> Logging the outcome");
                     auditTrailPayload = "Action: Delete --> ";
                     break;
-                }
+                case SEARCH:
+                    LOG.trace(".endTransaction(): Successful Delete --> Logging the outcome");
+                    auditTrailPayload = "Action: Search --> ";
+                    break;
             }
             if(fhirResource != null) {
                 auditTrailPayload = auditTrailPayload + parserR4.encodeResourceToString(fhirResource);

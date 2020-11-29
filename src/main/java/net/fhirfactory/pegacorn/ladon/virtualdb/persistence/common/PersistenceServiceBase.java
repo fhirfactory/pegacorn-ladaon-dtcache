@@ -94,7 +94,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
                 .execute();
         if(outputResource != null) {
             // There was no Resource with that Identifier....
-            ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse();
+            VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
             outcome.setCreated(false);
             outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
             outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FINISH);
@@ -117,7 +117,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
             return (outcome);
         } else {
             // There was no Resource with that Identifier....
-            ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse();
+            VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
             outcome.setCreated(false);
             outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
             outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
@@ -152,7 +152,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
             getLogger().error(".writeResource(): Can't create Resource {}, error --> {}", callOutcome.getOperationOutcome());
         }
         Identifier bestIdentifier = getBestIdentifier(callOutcome);
-        ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse(VirtualDBActionTypeEnum.CREATE, bestIdentifier, callOutcome);
+        VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome(VirtualDBActionTypeEnum.CREATE, bestIdentifier, callOutcome);
         getLogger().debug(".standardCreateResource(): Exit, outcome --> {}", outcome);
         return(outcome);
     }
@@ -171,7 +171,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
         }
         if(!hasOutcome){
             // There was no Resource with that Identifier....
-            ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse();
+            VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
             outcome.setCreated(false);
             outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
             outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
@@ -195,7 +195,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
         }
         if(outputBundle.getTotal() > 1){
             // There should only be one!
-            ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse();
+            VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
             outcome.setCreated(false);
             outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
             outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
@@ -220,7 +220,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
         // There is only be one!
         Bundle.BundleEntryComponent bundleEntry = outputBundle.getEntryFirstRep();
         Resource retrievedResource = bundleEntry.getResource();
-        ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse();
+        VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
         outcome.setCreated(false);
         outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
         outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FINISH);
@@ -258,7 +258,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
             getLogger().error(".writeResource(): Can't update Resource {}, error --> {}", callOutcome.getOperationOutcome());
         }
         Identifier bestIdentifier = getBestIdentifier(callOutcome);
-        ResourceSoTConduitActionResponse outcome = new ResourceSoTConduitActionResponse(VirtualDBActionTypeEnum.UPDATE, bestIdentifier, callOutcome);
+        VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome(VirtualDBActionTypeEnum.UPDATE, bestIdentifier, callOutcome);
         getLogger().debug(".standardUpdateResource(): Exit, outcome --> {}", outcome);
         return(outcome);
     }

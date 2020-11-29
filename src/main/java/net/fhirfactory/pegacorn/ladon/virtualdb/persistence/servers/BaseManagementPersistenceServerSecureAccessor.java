@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers;
 
 import net.fhirfactory.pegacorn.deployment.names.PegacornLadonVirtualDBPersistenceComponentNames;
-import net.fhirfactory.pegacorn.platform.hapifhir.clients.JPAServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class BaseManagementPersistenceServerSecureAccessor extends JPAServerSecureAccessor {
+public class BaseManagementPersistenceServerSecureAccessor extends PegacornInternalFHIRClientServices {
     private static final Logger LOG = LoggerFactory.getLogger(BaseManagementPersistenceServerSecureAccessor.class);
 
     @Override
@@ -40,27 +40,27 @@ public class BaseManagementPersistenceServerSecureAccessor extends JPAServerSecu
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
-    protected String specifyTopologySubsystemService() {
+    protected String specifyFHIRServerSubsystemService() {
         return (virtualDBPersistenceNames.getBaseManagementVirtualDBPersistenceService());
     }
 
     @Override
-    protected String specifyTopologySubsystemProcessingPlant() {
+    protected String specifyFHIRServerProcessingPlant() {
         return (virtualDBPersistenceNames.getBaseManagementVirtualDBPersistenceProcessingPlant());
     }
 
     @Override
-    protected String specifyTopologySubsystemName() {
+    protected String specifyFHIRServerSubsystemName() {
         return (virtualDBPersistenceNames.getBaseManagementVirtualDBPersistenceSubsystem());
     }
 
     @Override
-    protected String specifyTopologySubsystemVersion() {
+    protected String specifyFHIRServerSubsystemVersion() {
         return (virtualDBPersistenceNames.getBaseManagementVirtualDBPersistenceSubsystemVersion());
     }
 
     @Override
-    protected String specifyTopologyJPAServerEndpointName() {
+    protected String specifyFHIRServerServerEndpointName() {
         return (virtualDBPersistenceNames.getBaseManagementVirtualDBPersistenceEndpointFhirApi());
     }
 }
