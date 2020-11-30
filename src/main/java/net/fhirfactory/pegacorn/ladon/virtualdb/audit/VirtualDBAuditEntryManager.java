@@ -153,23 +153,23 @@ public class VirtualDBAuditEntryManager {
             switch (action) {
                 case REVIEW:
                     LOG.trace(".endTransaction(): Successful Review/Get --> Logging the outcome");
-                    auditTrailPayload = "Action: Get --> ";
+                    auditTrailPayload = "Action: Get, Result --> ";
                     break;
                 case UPDATE:
                     LOG.trace(".endTransaction(): Successful Update --> Logging the outcome");
-                    auditTrailPayload = "Action: Update --> ";
+                    auditTrailPayload = "Action: Update, Result --> ";
                     break;
                 case CREATE:
                     LOG.trace(".endTransaction(): Successful Create --> Logging the outcome");
-                    auditTrailPayload = "Action: Create --> ";
+                    auditTrailPayload = "Action: Create, Result --> ";
                     break;
                 case DELETE:
                     LOG.trace(".endTransaction(): Successful Delete --> Logging the outcome");
-                    auditTrailPayload = "Action: Delete --> ";
+                    auditTrailPayload = "Action: Delete, Result --> ";
                     break;
                 case SEARCH:
                     LOG.trace(".endTransaction(): Successful Delete --> Logging the outcome");
-                    auditTrailPayload = "Action: Search --> ";
+                    auditTrailPayload = "Action: Search, Result --> ";
                     break;
             }
             if(fhirResource != null) {
