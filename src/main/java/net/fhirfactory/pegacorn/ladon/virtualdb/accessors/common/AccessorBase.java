@@ -263,9 +263,11 @@ abstract public class AccessorBase {
         getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH) {
+        if(outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.REVIEW_FINISH)) {
+            getLogger().debug(".getResource(): Review Finsihed, resource found!");
             this.endTransaction(identifier, (Resource)outcome.getResource(), VirtualDBActionTypeEnum.REVIEW, true, currentTransaction);
         } else {
+            getLogger().debug(".getResource(): Review Finsihed, resource not found!");
             this.endTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
         }
         getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
