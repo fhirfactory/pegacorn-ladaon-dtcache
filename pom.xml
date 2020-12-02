@@ -10,7 +10,7 @@
     </parent>
     
     <artifactId>pegacorn-ladon-dtcache</artifactId>
-    <name>Pegacorn :: Ladon :: Digital Twin Cache</name>
+    <name>Pegacorn :: Ladon :: Virtual Database</name>
     <packaging>jar</packaging>
 
     <licenses>
@@ -90,6 +90,13 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${version-com.fasterxml.jackson.core-jackson-core}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${version-com.github.ben-manes.caffeine}</version>
         </dependency>
 
 
@@ -258,6 +265,18 @@
             <artifactId>pegacorn-platform-samples</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-ladon-mdr-core</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-buildingblocks-edge</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
