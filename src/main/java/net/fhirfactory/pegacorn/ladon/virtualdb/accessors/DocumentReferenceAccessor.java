@@ -47,6 +47,9 @@ public class DocumentReferenceAccessor extends AccessorBase {
 
     @Inject
     DocumentReferenceDBEngine documentReferenceDBEngine;
+    
+    @Inject 
+    private FhirUtil fhirUtil;
 
     public DocumentReferenceAccessor(){
         super();
@@ -76,7 +79,6 @@ public class DocumentReferenceAccessor extends AccessorBase {
             return(singleMasterIdentifierList);
         }
         if(LOG.isDebugEnabled()){
-            FhirUtil fhirUtil = FhirUtil.getInstance();
             IParser jsonParser = fhirUtil.getJsonParser().setPrettyPrint(true);
             String resourceString = jsonParser.encodeResourceToString(docRef);
             LOG.debug(".resolveIdentifierList(): Resource --> {}", resourceString);

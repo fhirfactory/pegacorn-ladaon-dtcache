@@ -99,13 +99,16 @@ abstract public class AccessorBase {
 
     @Inject
     private VirtualDBKeyManagement virtualDBKeyManagement;
+    
+    @Inject
+    private FhirUtil fhirUtil;
 
     @PostConstruct
     protected void initialise() {
         getLogger().debug(".initialise(): Entry");
         if (!isInitialised) {
             getLogger().trace(".initialise(): AccessBase is NOT initialised");
-            this.parserR4 = FhirUtil.getInstance().getJsonParser();
+            this.parserR4 = fhirUtil.getJsonParser();
             this.isInitialised = true;
             ladonPlant.initialisePlant();
             this.node = specifyNode();
@@ -263,9 +266,17 @@ abstract public class AccessorBase {
         getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(identifier);
+        if(getLogger().isTraceEnabled()) {
+            getLogger().trace(".getResource(): outcome.id --> {}", outcome.getId());
+        }
         if(outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.REVIEW_FINISH)) {
-            getLogger().debug(".getResource(): Review Finsihed, resource found!");
-            this.endTransaction(identifier, (Resource)outcome.getResource(), VirtualDBActionTypeEnum.REVIEW, true, currentTransaction);
+            Resource retrievedResource = (Resource)outcome.getResource();
+            if(getLogger().isTraceEnabled()) {
+                getLogger().trace(".getResource(): Review Finsihed, resource found!");
+                getLogger().trace(".getResource(): retrievedResource.id (Resource) --> {}", retrievedResource.getId());
+                getLogger().trace(".getResource(): retrievedResource.type --> {}", retrievedResource.getResourceType());
+            }
+            this.endTransaction(identifier, retrievedResource, VirtualDBActionTypeEnum.REVIEW, true, currentTransaction);
         } else {
             getLogger().debug(".getResource(): Review Finsihed, resource not found!");
             this.endTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);

@@ -46,6 +46,9 @@ public class PatientAccessorTest {
 
     @Inject
     PatientSetFactory patientSet;
+    
+    @Inject
+    private FhirUtil fhirUtil;
 
     @Inject
     StandaloneSampleDeploymentSolution sampleSolution;
@@ -108,7 +111,7 @@ public class PatientAccessorTest {
             }
         }
         boolean testSuccess = true;
-        IParser parserR4 = FhirUtil.getInstance().getJsonParser();
+        IParser parserR4 = fhirUtil.getJsonParser();
         int counter = 0;
         for (Identifier patientId : patientIdSet) {
             Patient retrievedPatient = patientAccessor.getPatient(patientId);

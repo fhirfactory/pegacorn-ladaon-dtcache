@@ -21,6 +21,7 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.audit;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,7 +55,10 @@ public class VirtualDBAuditEntryManager {
     private static final Logger LOG = LoggerFactory.getLogger(VirtualDBAuditEntryManager.class);
 
     private static final String FHIR_VERSION = "4.0.1";
-
+    
+    @Inject 
+    private FhirUtil fhirUtil;
+    
     private IParser parserR4;
 
     @Inject
@@ -66,7 +70,8 @@ public class VirtualDBAuditEntryManager {
     @PostConstruct
     protected void initialise() {
         LOG.debug(".initialise(): Entry");
-        this.parserR4 = FhirUtil.getInstance().getJsonParser();
+        FhirContext newContext = FhirContext.forR4();
+        this.parserR4 = newContext.newJsonParser();
         LOG.debug(".initialise(): Exit");
     }
 
@@ -173,7 +178,9 @@ public class VirtualDBAuditEntryManager {
                     break;
             }
             if(fhirResource != null) {
-                auditTrailPayload = auditTrailPayload + parserR4.encodeResourceToString(fhirResource);
+                LOG.trace(".endTransaction(): fhirResource.type --> {}", fhirResource.getResourceType());
+                if(parserR4 == null) {LOG.error("Warning Will Robinson!!!!");}
+                auditTrailPayload = auditTrailPayload  + parserR4.encodeResourceToString(fhirResource);
             } else {
                 auditTrailPayload = auditTrailPayload + auditEntryString;
             }
