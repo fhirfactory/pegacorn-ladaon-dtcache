@@ -376,10 +376,10 @@ abstract public class AccessorBase {
         return(resultString);
     }
 
-    public VirtualDBMethodOutcome findResourceByIdentifier(Identifier identifier) {
+    public VirtualDBMethodOutcome findResourceViaIdentifier(Identifier identifier) {
         getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
-        VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourceViaIdentifier(identifier);
+        VirtualDBMethodOutcome outcome = getResourceDBEngine().findResourceViaIdentifier(identifier);
         if(getLogger().isTraceEnabled()) {
             getLogger().trace(".getResource(): outcome.id --> {}", outcome.getId());
         }

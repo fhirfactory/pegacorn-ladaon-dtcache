@@ -158,7 +158,7 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     //
     //
 
-    public VirtualDBMethodOutcome getResourceViaIdentifier(Identifier identifier) {
+    public VirtualDBMethodOutcome findResourceViaIdentifier(Identifier identifier) {
         getLogger().trace(".getResource(): Entry");
         VirtualDBMethodOutcome outcome = getDBCache().getResource(identifier);
         if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE) {

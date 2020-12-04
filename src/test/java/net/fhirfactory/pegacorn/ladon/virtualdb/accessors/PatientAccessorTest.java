@@ -114,7 +114,8 @@ public class PatientAccessorTest {
         IParser parserR4 = fhirUtil.getJsonParser();
         int counter = 0;
         for (Identifier patientId : patientIdSet) {
-            Patient retrievedPatient = patientAccessor.getPatient(patientId);
+            VirtualDBMethodOutcome outcome = patientAccessor.findResourceViaIdentifier(patientId);
+            Patient retrievedPatient = (Patient)outcome.getResource();
             if (LOG.isTraceEnabled()) {
                 String retrievedPatientAsString = parserR4.encodeResourceToString(retrievedPatient);
                 LOG.trace(".addPatientResourceAndRetrieve(): Retrieved Patient [{}] --> {}", counter, retrievedPatientAsString);
@@ -127,7 +128,8 @@ public class PatientAccessorTest {
         }
         for (Identifier patientIdentifier : patientIdSet) {
             LOG.trace(".addPatientResourceAndRetrieve(): Attempting to retrieve Patient --> {}", patientIdentifier);
-            Patient retrievedPatient = patientAccessor.getPatient(patientIdentifier);
+            VirtualDBMethodOutcome outcome = patientAccessor.findResourceViaIdentifier(patientIdentifier);
+            Patient retrievedPatient = (Patient)outcome.getResource();
             if(retrievedPatient != null){
                 assertTrue(false);
             }
