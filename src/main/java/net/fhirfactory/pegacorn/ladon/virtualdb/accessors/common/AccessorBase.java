@@ -33,6 +33,8 @@ import net.fhirfactory.pegacorn.ladon.virtualdb.engine.common.ResourceDBEngine;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.common.model.FDN;
 import net.fhirfactory.pegacorn.common.model.RDN;
@@ -158,7 +160,7 @@ abstract public class AccessorBase {
      * @return
      */
     protected PetasosParcelAuditTrailEntry beginTransaction(Identifier resourceIdentifier, Resource fhirResource, VirtualDBActionTypeEnum action){
-        String resourceKey = resourceIdentifier.toString();
+        String resourceKey = generatePrintableInformationFromIdentifier(resourceIdentifier);
         PetasosParcelAuditTrailEntry parcelEntry = auditEntryManager.beginTransaction(resourceKey, getResourceTypeName(), fhirResource, action, this.accessorIdentifier, this.version );
         return(parcelEntry);
     }
@@ -377,25 +379,66 @@ abstract public class AccessorBase {
     }
 
     public VirtualDBMethodOutcome findResourceViaIdentifier(Identifier identifier) {
-        getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
+        getLogger().debug(".findResourceViaIdentifier(): Entry, identifier (Identifier) --> {}", identifier);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().findResourceViaIdentifier(identifier);
         if(getLogger().isTraceEnabled()) {
-            getLogger().trace(".getResource(): outcome.id --> {}", outcome.getId());
+            getLogger().trace(".findResourceViaIdentifier(): outcome.id --> {}", outcome.getId());
         }
         if(outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.REVIEW_FINISH)) {
             Resource retrievedResource = (Resource)outcome.getResource();
             if(getLogger().isTraceEnabled()) {
-                getLogger().trace(".getResource(): Review Finsihed, resource found!");
-                getLogger().trace(".getResource(): retrievedResource.id (Resource) --> {}", retrievedResource.getId());
-                getLogger().trace(".getResource(): retrievedResource.type --> {}", retrievedResource.getResourceType());
+                getLogger().trace(".findResourceViaIdentifier(): Review Finsihed, resource found!");
+                getLogger().trace(".findResourceViaIdentifier(): retrievedResource.id (Resource) --> {}", retrievedResource.getId());
+                getLogger().trace(".findResourceViaIdentifier(): retrievedResource.type --> {}", retrievedResource.getResourceType());
             }
             this.endTransaction(identifier, retrievedResource, VirtualDBActionTypeEnum.REVIEW, true, currentTransaction);
         } else {
-            getLogger().debug(".getResource(): Review Finsihed, resource not found!");
+            getLogger().debug(".findResourceViaIdentifier(): Review Finsihed, resource not found!");
             this.endTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
         }
-        getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
+        getLogger().debug(".findResourceViaIdentifier(): Exit, Resource retrieved, outcome --> {}", outcome);
         return (outcome);
+    }
+    
+    
+    private String generatePrintableInformationFromIdentifier(Identifier identifier) {
+        if(identifier == null) {
+            return("No Identifier");
+        }
+        String printableInfo = new String();
+        if(identifier.hasType()) {
+            printableInfo += "Identifier";
+            CodeableConcept identifierType = identifier.getType();
+            int codeCount = identifierType.getCoding().size();
+            printableInfo += "{\"type\":[";
+            for(Coding identifierTypeCoding: identifierType.getCoding()) {
+                if(identifierTypeCoding.hasSystem()) {
+                    printableInfo += "{\"";
+                    printableInfo += identifierTypeCoding.getSystem();
+                    printableInfo += "\"";
+                } else {
+                    printableInfo += "\"\"";
+                }
+                printableInfo += ":";
+                if(identifierTypeCoding.hasCode()) {
+                    printableInfo += "\"";
+                    printableInfo += identifierTypeCoding.getCode();
+                    printableInfo += "\"}";
+                } else {
+                    printableInfo += "\"\"}";
+                }
+            }
+            codeCount -= 1;
+            if(codeCount < 1) {
+                printableInfo += "]},";
+            } else {
+                printableInfo += ",";
+            }
+        }
+        if(identifier.hasValue()) {
+            printableInfo += "{\"value\":\"" + identifier.getValue() + "\"}";        
+        }
+        return(printableInfo);
     }
 }
