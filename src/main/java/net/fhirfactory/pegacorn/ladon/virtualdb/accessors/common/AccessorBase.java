@@ -262,29 +262,6 @@ abstract public class AccessorBase {
         return (accessor);
     }
 
-    public VirtualDBMethodOutcome getResource(Identifier identifier) {
-        getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
-        PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
-        VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(identifier);
-        if(getLogger().isTraceEnabled()) {
-            getLogger().trace(".getResource(): outcome.id --> {}", outcome.getId());
-        }
-        if(outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.REVIEW_FINISH)) {
-            Resource retrievedResource = (Resource)outcome.getResource();
-            if(getLogger().isTraceEnabled()) {
-                getLogger().trace(".getResource(): Review Finsihed, resource found!");
-                getLogger().trace(".getResource(): retrievedResource.id (Resource) --> {}", retrievedResource.getId());
-                getLogger().trace(".getResource(): retrievedResource.type --> {}", retrievedResource.getResourceType());
-            }
-            this.endTransaction(identifier, retrievedResource, VirtualDBActionTypeEnum.REVIEW, true, currentTransaction);
-        } else {
-            getLogger().debug(".getResource(): Review Finsihed, resource not found!");
-            this.endTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
-        }
-        getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
-        return (outcome);
-    }
-
     public VirtualDBMethodOutcome getResource(IdType id) {
         getLogger().debug(".getResource(): Entry, id (IdType) --> {}", id);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(id, null, VirtualDBActionTypeEnum.REVIEW);
@@ -295,14 +272,6 @@ abstract public class AccessorBase {
             this.endTransaction(id, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
         }
         getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
-        return (outcome);
-    }
-
-
-    public VirtualDBMethodOutcome getResourceNoAudit(Identifier identifier) {
-        getLogger().debug(".getResourceNoAudit(): Entry, identifier (Identifier) --> {}", identifier);
-        VirtualDBMethodOutcome outcome = getResourceDBEngine().getResource(identifier);
-        getLogger().debug(".getResourceNoAudit(): Exit, Resource retrieved, outcome --> {}", outcome);
         return (outcome);
     }
 
@@ -407,5 +376,26 @@ abstract public class AccessorBase {
         return(resultString);
     }
 
-
+    public VirtualDBMethodOutcome findResourceByIdentifier(Identifier identifier) {
+        getLogger().debug(".getResource(): Entry, identifier (Identifier) --> {}", identifier);
+        PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW);
+        VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourceViaIdentifier(identifier);
+        if(getLogger().isTraceEnabled()) {
+            getLogger().trace(".getResource(): outcome.id --> {}", outcome.getId());
+        }
+        if(outcome.getStatusEnum().equals(VirtualDBActionStatusEnum.REVIEW_FINISH)) {
+            Resource retrievedResource = (Resource)outcome.getResource();
+            if(getLogger().isTraceEnabled()) {
+                getLogger().trace(".getResource(): Review Finsihed, resource found!");
+                getLogger().trace(".getResource(): retrievedResource.id (Resource) --> {}", retrievedResource.getId());
+                getLogger().trace(".getResource(): retrievedResource.type --> {}", retrievedResource.getResourceType());
+            }
+            this.endTransaction(identifier, retrievedResource, VirtualDBActionTypeEnum.REVIEW, true, currentTransaction);
+        } else {
+            getLogger().debug(".getResource(): Review Finsihed, resource not found!");
+            this.endTransaction(identifier, null, VirtualDBActionTypeEnum.REVIEW, false, currentTransaction);
+        }
+        getLogger().debug(".getResource(): Exit, Resource retrieved, outcome --> {}", outcome);
+        return (outcome);
+    }
 }

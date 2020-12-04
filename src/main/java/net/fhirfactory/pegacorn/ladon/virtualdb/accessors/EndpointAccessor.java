@@ -84,20 +84,4 @@ public class EndpointAccessor extends AccessorBase {
     protected Logger getLogger() {
         return (LOG);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Endpoint resource associated within the identifier.
-     */
-    public Endpoint getEndpoint(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Endpoint retrievedEndpoint = (Endpoint)outcome.getResource();
-            return(retrievedEndpoint);
-        }
-        return(null);
-    }
 }

@@ -83,21 +83,4 @@ public class EncounterAccessor extends AccessorBase {
     protected Logger getLogger() {
         return (LOG);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Encounter resource associated within the identifier.
-     */
-    public Encounter getEncounter(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Encounter retrievedEncounter = (Encounter)outcome.getResource();
-            return(retrievedEncounter);
-        }
-        return(null);
-    }
-
 }

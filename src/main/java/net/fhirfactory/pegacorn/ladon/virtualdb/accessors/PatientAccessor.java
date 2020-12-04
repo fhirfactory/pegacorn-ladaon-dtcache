@@ -85,36 +85,4 @@ public class PatientAccessor extends AccessorBase {
         return (ACCESSOR_VERSION);
     }
 
-    /**
-     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Patient resource associated within the identifier.
-     */
-    public Patient getPatient(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Patient retrievedPatient = (Patient)outcome.getResource();
-            return(retrievedPatient);
-        }
-        return(null);
-    }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param id
-     * @return The Patient resource associated within the identifier.
-     */
-    public Patient getPatient(IdType id){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(id);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Patient retrievedPatient = (Patient)outcome.getResource();
-            return(retrievedPatient);
-        }
-        return(null);
-    }
-
 }

@@ -83,22 +83,5 @@ public class OrganizationAccessor extends AccessorBase {
     protected String specifyAccessorResourceTypeVersion() {
         return (ACCESSOR_VERSION);
     }
-    
-    
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Organization resource associated within the identifier.
-     */
-    public Organization getOrganization(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Organization retrievedOrganization = (Organization)outcome.getResource();
-            return(retrievedOrganization);
-        }
-        return(null);
-    }
-    
+
 }

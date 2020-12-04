@@ -83,20 +83,4 @@ public class GroupAccessor extends AccessorBase {
         List<Identifier> identifierList = res.getIdentifier();
         return(identifierList);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Group resource associated within the identifier.
-     */
-    public Group getGroup(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Group retrievedGroup = (Group)outcome.getResource();
-            return(retrievedGroup);
-        }
-        return(null);
-    }
 }

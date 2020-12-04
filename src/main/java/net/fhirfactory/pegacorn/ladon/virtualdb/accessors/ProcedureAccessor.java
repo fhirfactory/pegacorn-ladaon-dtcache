@@ -84,19 +84,4 @@ public class ProcedureAccessor extends AccessorBase {
         return (ACCESSOR_VERSION);
     }
 
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Procedure resource associated within the identifier.
-     */
-    public Procedure getProcedure(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Procedure retrievedProcedure = (Procedure)outcome.getResource();
-            return(retrievedProcedure);
-        }
-        return(null);
-    }
 }

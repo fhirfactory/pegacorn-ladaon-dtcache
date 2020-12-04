@@ -84,19 +84,4 @@ public class CommunicationAccessor extends AccessorBase {
         return (ACCESSOR_VERSION);
     }
 
-    /**
-     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Communication resource associated within the identifier.
-     */
-    public Communication getCommunication(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Communication retrievedCareTeam = (Communication)outcome.getResource();
-            return(retrievedCareTeam);
-        }
-        return(null);
-    }
 }

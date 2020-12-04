@@ -84,19 +84,4 @@ public class LocationAccessor extends AccessorBase {
         return (ACCESSOR_VERSION);
     }
 
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The Location resource associated within the identifier.
-     */
-    public Location getLocation(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            Location retrievedLocation = (Location)outcome.getResource();
-            return(retrievedLocation);
-        }
-        return(null);
-    }
 }

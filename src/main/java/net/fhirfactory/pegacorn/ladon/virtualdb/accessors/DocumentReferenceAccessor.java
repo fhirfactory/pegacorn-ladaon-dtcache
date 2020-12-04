@@ -102,21 +102,4 @@ public class DocumentReferenceAccessor extends AccessorBase {
     protected Logger getLogger() {
         return (LOG);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The DocumentReference resource associated within the identifier.
-     */
-    public DocumentReference getDocumentReference(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            DocumentReference retrievedDocumentReference = (DocumentReference)outcome.getResource();
-            return(retrievedDocumentReference);
-        }
-        return(null);
-    }
-
 }
