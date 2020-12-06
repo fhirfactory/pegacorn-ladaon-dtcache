@@ -22,12 +22,10 @@
 package net.fhirfactory.pegacorn.ladon.virtualdb.accessors;
 
 import ca.uhn.fhir.parser.IParser;
-import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
-import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.accessors.common.AccessorBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.DocumentReferenceDBEngine;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.common.ResourceDBEngine;
-import net.fhirfactory.pegacorn.util.FhirUtil;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
@@ -49,7 +47,7 @@ public class DocumentReferenceAccessor extends AccessorBase {
     DocumentReferenceDBEngine documentReferenceDBEngine;
     
     @Inject 
-    private FhirUtil fhirUtil;
+    private FHIRContextUtility FHIRContextUtility;
 
     public DocumentReferenceAccessor(){
         super();
@@ -79,7 +77,7 @@ public class DocumentReferenceAccessor extends AccessorBase {
             return(singleMasterIdentifierList);
         }
         if(LOG.isDebugEnabled()){
-            IParser jsonParser = fhirUtil.getJsonParser().setPrettyPrint(true);
+            IParser jsonParser = FHIRContextUtility.getJsonParser().setPrettyPrint(true);
             String resourceString = jsonParser.encodeResourceToString(docRef);
             LOG.debug(".resolveIdentifierList(): Resource --> {}", resourceString);
         }

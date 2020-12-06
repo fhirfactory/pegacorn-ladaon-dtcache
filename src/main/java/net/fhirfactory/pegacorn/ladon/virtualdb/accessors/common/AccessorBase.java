@@ -27,13 +27,12 @@ import javax.inject.Inject;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionTypeEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
+import net.fhirfactory.pegacorn.ladon.model.virtualdb.searches.SearchNameEnum;
 import net.fhirfactory.pegacorn.ladon.virtualdb.audit.VirtualDBAuditEntryManager;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.businesskey.VirtualDBKeyManagement;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.common.ResourceDBEngine;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.common.model.FDN;
@@ -48,7 +47,7 @@ import net.fhirfactory.pegacorn.petasos.model.topology.NodeElementIdentifier;
 import net.fhirfactory.pegacorn.petasos.model.topology.NodeElementTypeEnum;
 import net.fhirfactory.pegacorn.petasos.model.wup.WUPIdentifier;
 import net.fhirfactory.pegacorn.petasos.model.wup.WUPJobCard;
-import net.fhirfactory.pegacorn.util.FhirUtil;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 
 import java.io.Serializable;
 import java.util.List;
@@ -103,14 +102,14 @@ abstract public class AccessorBase {
     private VirtualDBKeyManagement virtualDBKeyManagement;
     
     @Inject
-    private FhirUtil fhirUtil;
+    private FHIRContextUtility FHIRContextUtility;
 
     @PostConstruct
     protected void initialise() {
         getLogger().debug(".initialise(): Entry");
         if (!isInitialised) {
             getLogger().trace(".initialise(): AccessBase is NOT initialised");
-            this.parserR4 = fhirUtil.getJsonParser();
+            this.parserR4 = FHIRContextUtility.getJsonParser();
             this.isInitialised = true;
             ladonPlant.initialisePlant();
             this.node = specifyNode();
@@ -160,7 +159,7 @@ abstract public class AccessorBase {
      * @return
      */
     protected PetasosParcelAuditTrailEntry beginTransaction(Identifier resourceIdentifier, Resource fhirResource, VirtualDBActionTypeEnum action){
-        String resourceKey = generatePrintableInformationFromIdentifier(resourceIdentifier);
+        String resourceKey = virtualDBKeyManagement.generatePrintableInformationFromIdentifier(resourceIdentifier);
         PetasosParcelAuditTrailEntry parcelEntry = auditEntryManager.beginTransaction(resourceKey, getResourceTypeName(), fhirResource, action, this.accessorIdentifier, this.version );
         return(parcelEntry);
     }
@@ -332,10 +331,10 @@ abstract public class AccessorBase {
      * @param parameterSet
      * @return
      */
-    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Map<Property, Serializable> parameterSet) {
+    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, SearchNameEnum searchName, Map<Property, Serializable> parameterSet) {
         getLogger().debug(".getResourcesViaSearchCriteria(): Entry, parameterSet --> {}", parameterSet);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(parameterSet, VirtualDBActionTypeEnum.SEARCH);
-        VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourcesViaSearchCriteria(resourceType, parameterSet);
+        VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourcesViaSearchCriteria(resourceType, searchName, parameterSet);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.SEARCH_FAILURE) {
             endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
             return(outcome);
@@ -358,10 +357,10 @@ abstract public class AccessorBase {
         if(searchResult == null) {
             return("Search Failed");
         }
-        if(searchResult.getTotal() == 0){
+        int resultCount = searchResult.getTotal();
+        if(resultCount == 0){
             return("Search Succeeded: Result Count = 0");
         }
-        int resultCount = searchResult.getTotal();
         String resultString = "Search Succeeded: Result Count = " + resultCount + ": Entries --> ";
         for(Bundle.BundleEntryComponent currentBundleEntry: searchResult.getEntry()){
             Resource currentResource = currentBundleEntry.getResource();
@@ -402,43 +401,5 @@ abstract public class AccessorBase {
     }
     
     
-    private String generatePrintableInformationFromIdentifier(Identifier identifier) {
-        if(identifier == null) {
-            return("No Identifier");
-        }
-        String printableInfo = new String();
-        if(identifier.hasType()) {
-            printableInfo += "Identifier";
-            CodeableConcept identifierType = identifier.getType();
-            int codeCount = identifierType.getCoding().size();
-            printableInfo += "{\"type\":[";
-            for(Coding identifierTypeCoding: identifierType.getCoding()) {
-                if(identifierTypeCoding.hasSystem()) {
-                    printableInfo += "{\"";
-                    printableInfo += identifierTypeCoding.getSystem();
-                    printableInfo += "\"";
-                } else {
-                    printableInfo += "\"\"";
-                }
-                printableInfo += ":";
-                if(identifierTypeCoding.hasCode()) {
-                    printableInfo += "\"";
-                    printableInfo += identifierTypeCoding.getCode();
-                    printableInfo += "\"}";
-                } else {
-                    printableInfo += "\"\"}";
-                }
-            }
-            codeCount -= 1;
-            if(codeCount < 1) {
-                printableInfo += "]},";
-            } else {
-                printableInfo += ",";
-            }
-        }
-        if(identifier.hasValue()) {
-            printableInfo += "{\"value\":\"" + identifier.getValue() + "\"}";        
-        }
-        return(printableInfo);
-    }
+
 }

@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.deployment.topology.map.standalone.StandaloneSampleDeploymentSolution;
 import net.fhirfactory.pegacorn.fhir.r4.samples.PatientSetFactory;
-import net.fhirfactory.pegacorn.util.FhirUtil;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 
 @RunWith(Arquillian.class)
 public class PatientAccessorTest {
@@ -48,7 +47,7 @@ public class PatientAccessorTest {
     PatientSetFactory patientSet;
     
     @Inject
-    private FhirUtil fhirUtil;
+    private FHIRContextUtility FHIRContextUtility;
 
     @Inject
     StandaloneSampleDeploymentSolution sampleSolution;
@@ -111,7 +110,7 @@ public class PatientAccessorTest {
             }
         }
         boolean testSuccess = true;
-        IParser parserR4 = fhirUtil.getJsonParser();
+        IParser parserR4 = FHIRContextUtility.getJsonParser();
         int counter = 0;
         for (Identifier patientId : patientIdSet) {
             VirtualDBMethodOutcome outcome = patientAccessor.findResourceViaIdentifier(patientId);
