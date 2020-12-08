@@ -78,7 +78,7 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
         if(!resourceToCreate.hasId()){
             getLogger().trace(".createResource(): Resource did not have an Id, so creating one!");
             newId = new IdType();
-            newId.setValueAsString(resourceToCreate.getResourceType().getPath()+"/"+UUID.randomUUID().toString());
+            newId.setValueAsString(resourceToCreate.getResourceType().toString()+"/"+UUID.randomUUID().toString());
             resourceToCreate.setId(newId);
             getLogger().trace(".createResource(): Resource Id created and added to Resource, Id --> {}", newId);
         } else {
@@ -102,7 +102,7 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     public VirtualDBMethodOutcome getResource(IdType id){
         VirtualDBMethodOutcome outcome = getDBCache().getResource(id);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FAILURE){
-            VirtualDBMethodOutcome persistenceServiceOutcome = getPersistenceService().getResourceById(getResourceType().getPath(), id);
+            VirtualDBMethodOutcome persistenceServiceOutcome = getPersistenceService().getResourceById(getResourceType().toString(), id);
             if(persistenceServiceOutcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
                 Resource persistenceServiceOriginatedResource = (Resource)persistenceServiceOutcome.getResource();
                 List<Identifier> identifierList = resolveIdentifierSet(persistenceServiceOriginatedResource);
@@ -160,13 +160,13 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     //
 
     public VirtualDBMethodOutcome findResourceViaIdentifier(Identifier identifier) {
-        getLogger().trace(".getResource(): Entry");
+        getLogger().trace(".findResourceViaIdentifier(): Entry");
         VirtualDBMethodOutcome outcome = getDBCache().getResource(identifier);
         if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE) {
             getLogger().trace(".getResource(): Resource not in Cache, going to Sources-of-Truth");
             outcome = getSourceOfTruthAggregator().reviewResource(identifier);
         }
-        getLogger().trace(".getResource(): Exit");
+        getLogger().trace(".findResourceViaIdentifier(): Exit");
         return (outcome);
     }
 

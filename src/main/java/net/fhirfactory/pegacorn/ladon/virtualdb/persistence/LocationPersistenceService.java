@@ -28,6 +28,7 @@ import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethod
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceServiceBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers.BaseEntitiesPersistenceServerSecureAccessor;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers.BaseIndividualsPersistenceServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +62,8 @@ public class LocationPersistenceService extends PersistenceServiceBase {
     }
 
     @Override
-    protected IGenericClient getClient() {
-        return (persistenceServerSecureAccessor.getClient());
+    protected PegacornInternalFHIRClientServices getFHIRClientServices() {
+        return (persistenceServerSecureAccessor);
     }
 
     @Override

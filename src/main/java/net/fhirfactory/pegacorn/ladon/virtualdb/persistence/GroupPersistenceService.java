@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.ladon.model.virtualdb.businesskey.VirtualDBKeyMa
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceServiceBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers.BaseIndividualsPersistenceServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +61,8 @@ public class GroupPersistenceService extends PersistenceServiceBase {
     }
 
     @Override
-    protected IGenericClient getClient() {
-        return (persistenceServerSecureAccessor.getClient());
+    protected PegacornInternalFHIRClientServices getFHIRClientServices() {
+        return (persistenceServerSecureAccessor);
     }
 
     @Override

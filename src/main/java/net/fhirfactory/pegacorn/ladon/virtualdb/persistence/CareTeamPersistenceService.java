@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.ladon.model.virtualdb.businesskey.VirtualDBKeyMa
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceServiceBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers.ClinicalCareProvisionPersistenceServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.hl7.fhir.r4.model.CareTeam;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
@@ -63,8 +64,8 @@ public class CareTeamPersistenceService extends PersistenceServiceBase {
     }
 
     @Override
-    protected IGenericClient getClient() {
-        return (clinicalCareProvisionPersistenceServerSecureAccessor.getClient());
+    protected PegacornInternalFHIRClientServices getFHIRClientServices() {
+        return (clinicalCareProvisionPersistenceServerSecureAccessor);
     }
 
     @Override
