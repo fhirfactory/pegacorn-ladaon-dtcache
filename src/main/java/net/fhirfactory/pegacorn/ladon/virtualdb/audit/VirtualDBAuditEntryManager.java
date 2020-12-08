@@ -21,7 +21,6 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.audit;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.common.model.FDN;
 import net.fhirfactory.pegacorn.common.model.RDN;
@@ -64,8 +63,7 @@ public class VirtualDBAuditEntryManager {
     @PostConstruct
     protected void initialise() {
         LOG.debug(".initialise(): Entry");
-        FhirContext newContext = FhirContext.forR4();
-        this.parserR4 = newContext.newJsonParser();
+        this.parserR4 = FHIRContextUtility.getJsonParser();
         LOG.debug(".initialise(): Exit");
     }
 
