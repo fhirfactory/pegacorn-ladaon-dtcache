@@ -21,10 +21,9 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.engine.common;
 
-import net.fhirfactory.pegacorn.ladon.mdr.conduit.common.ResourceSoTConduitController;
+import net.fhirfactory.pegacorn.ladon.mdr.conduit.controller.common.ResourceSoTConduitController;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.ResourceDBEngineInterface;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
-import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionTypeEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcomeFactory;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.searches.SearchNameEnum;
