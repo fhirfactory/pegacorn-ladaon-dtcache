@@ -331,8 +331,8 @@ abstract public class AccessorBase {
      * @param parameterSet
      * @return
      */
-    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, SearchNameEnum searchName, Map<Property, Serializable> parameterSet) {
-        getLogger().debug(".getResourcesViaSearchCriteria(): Entry, parameterSet --> {}", parameterSet);
+    public VirtualDBMethodOutcome searchUsingCriteria(ResourceType resourceType, SearchNameEnum searchName, Map<Property, Serializable> parameterSet) {
+        getLogger().debug(".searchUsingCriteria(): Entry, Search Name --> {}, parameterSet --> {}", searchName, parameterSet);
         PetasosParcelAuditTrailEntry currentTransaction = this.beginTransaction(parameterSet, VirtualDBActionTypeEnum.SEARCH);
         VirtualDBMethodOutcome outcome = getResourceDBEngine().getResourcesViaSearchCriteria(resourceType, searchName, parameterSet);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.SEARCH_FAILURE) {
@@ -342,14 +342,16 @@ abstract public class AccessorBase {
         Resource searchResultResource = (Resource)outcome.getResource();
         if( searchResultResource == null){
             endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
+            getLogger().debug(".searchUsingCriteria(): Exit, result set is null");
             return(outcome);
         }
         if(searchResultResource.getResourceType() == ResourceType.Bundle){
             Bundle searchResultBundle = (Bundle)searchResultResource;
             this.endSearchTransaction(searchResultBundle, searchResultBundle.getTotal(), VirtualDBActionTypeEnum.SEARCH, true, currentTransaction);
         } else {
-                this.endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
+            this.endSearchTransaction(null, 0, VirtualDBActionTypeEnum.SEARCH, false, currentTransaction);
         }
+        getLogger().debug(".searchUsingCriteria(): Exit");
         return(outcome);
     }
 

@@ -159,20 +159,22 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     //
 
     public VirtualDBMethodOutcome findResourceViaIdentifier(Identifier identifier) {
-        getLogger().trace(".findResourceViaIdentifier(): Entry");
+        getLogger().debug(".findResourceViaIdentifier(): Entry");
         VirtualDBMethodOutcome outcome = getDBCache().getResource(identifier);
         if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE) {
             getLogger().trace(".getResource(): Resource not in Cache, going to Sources-of-Truth");
             outcome = getSourceOfTruthAggregator().reviewResource(identifier);
         }
-        getLogger().trace(".findResourceViaIdentifier(): Exit");
+        getLogger().debug(".findResourceViaIdentifier(): Exit");
         return (outcome);
     }
 
     @Override
     public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, SearchNameEnum searchName, Map<Property, Serializable> parameterSet) {
+        getLogger().debug(".getResourcesViaSearchCriteria(): Entry, ResourceType --> {}, Search Name --> {}", resourceType.toString(), searchName.getSearchName());
         VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().getResourcesViaSearchCriteria(resourceType, searchName, parameterSet);
         updateCache(outcome);
+        getLogger().debug(".getResourcesViaSearchCriteria(): Exit");
         return(outcome);
     }
 }
