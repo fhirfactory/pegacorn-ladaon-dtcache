@@ -40,7 +40,7 @@ public class FoundationOtherPersistenceServerSecureAccessor extends PegacornInte
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
-    protected String specifyFHIRServerSubsystemService() {
+    protected String specifyFHIRServerService() {
         return (virtualDBPersistenceNames.getFoundationOtherVirtualDBPersistenceService());
     }
 

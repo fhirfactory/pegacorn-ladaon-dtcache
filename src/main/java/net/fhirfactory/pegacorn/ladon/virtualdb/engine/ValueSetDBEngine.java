@@ -21,8 +21,8 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.engine;
 
-import net.fhirfactory.pegacorn.ladon.mdr.conduit.ValueSetSoTConduitController;
-import net.fhirfactory.pegacorn.ladon.mdr.conduit.common.ResourceSoTConduitController;
+import net.fhirfactory.pegacorn.ladon.mdr.conduit.controller.ValueSetSoTConduitController;
+import net.fhirfactory.pegacorn.ladon.mdr.conduit.controller.common.ResourceSoTConduitController;
 import net.fhirfactory.pegacorn.ladon.virtualdb.cache.ValueSetCache;
 import net.fhirfactory.pegacorn.ladon.virtualdb.cache.common.VirtualDBIdTypeBasedCacheBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.common.ResourceDBEngine;

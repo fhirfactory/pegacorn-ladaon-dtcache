@@ -40,7 +40,7 @@ public class FinancialBillingPersistenceServerSecureAccessor extends PegacornInt
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
-    protected String specifyFHIRServerSubsystemService() {
+    protected String specifyFHIRServerService() {
         return (virtualDBPersistenceNames.getFinancialBillingVirtualDBPersistenceService());
     }
 

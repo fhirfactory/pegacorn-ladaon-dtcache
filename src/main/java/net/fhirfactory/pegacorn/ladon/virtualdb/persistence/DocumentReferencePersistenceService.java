@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.ladon.model.virtualdb.businesskey.VirtualDBKeyMa
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceServiceBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers.FoundationDocumentsPersistenceServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
@@ -42,7 +43,7 @@ public class DocumentReferencePersistenceService extends PersistenceServiceBase 
     private static final Logger LOG = LoggerFactory.getLogger(DocumentReferencePersistenceService.class);
 
     @Inject
-    private FoundationDocumentsPersistenceServerSecureAccessor foundationDocumentsPersistenceServerSecureAccessor;
+    private FoundationDocumentsPersistenceServerSecureAccessor persistenceServerSecureAccessor;
 
     @Inject
     VirtualDBKeyManagement virtualDBKeyResolver;
@@ -63,8 +64,8 @@ public class DocumentReferencePersistenceService extends PersistenceServiceBase 
     }
 
     @Override
-    protected IGenericClient getClient() {
-        return (foundationDocumentsPersistenceServerSecureAccessor.getClient());
+    protected PegacornInternalFHIRClientServices getFHIRClientServices() {
+        return (persistenceServerSecureAccessor);
     }
 
     @Override

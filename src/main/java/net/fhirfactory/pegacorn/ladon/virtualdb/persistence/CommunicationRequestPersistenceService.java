@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.ladon.model.virtualdb.businesskey.VirtualDBKeyMa
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceServiceBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.servers.ClinicalRequestAndResponsePersistenceServerSecureAccessor;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.hl7.fhir.r4.model.CommunicationRequest;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
@@ -63,8 +64,8 @@ public class CommunicationRequestPersistenceService extends PersistenceServiceBa
     }
 
     @Override
-    protected IGenericClient getClient() {
-        return (persistenceServerSecureAccessor.getClient());
+    protected PegacornInternalFHIRClientServices getFHIRClientServices() {
+        return (persistenceServerSecureAccessor);
     }
 
     @Override

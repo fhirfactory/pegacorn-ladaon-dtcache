@@ -24,15 +24,19 @@ package net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import net.fhirfactory.pegacorn.datasets.fhir.r4.base.entities.bundle.BundleContentHelper;
 import net.fhirfactory.pegacorn.deployment.names.PegacornLadonVirtualDBPersistenceComponentNames;
 import net.fhirfactory.pegacorn.deployment.topology.manager.DeploymentTopologyIM;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.mdr.ResourceSoTConduitActionResponse;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionTypeEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
+import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcomeFactory;
 import net.fhirfactory.pegacorn.ladon.processingplant.LadonProcessingPlant;
 import net.fhirfactory.pegacorn.petasos.core.sta.wup.GenericSTAClientWUPTemplate;
+import net.fhirfactory.pegacorn.petasos.model.itops.PegacornFunctionStatusEnum;
 import net.fhirfactory.pegacorn.petasos.model.processingplant.ProcessingPlantServicesInterface;
+import net.fhirfactory.pegacorn.platform.restfulapi.PegacornInternalFHIRClientServices;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
@@ -41,8 +45,6 @@ import javax.inject.Inject;
 
 public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate {
 
-    private IParser parserR4;
-
     @Inject
     LadonProcessingPlant ladonProcessingPlant;
 
@@ -50,7 +52,13 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
     private DeploymentTopologyIM deploymentTopologyIM;
 
     @Inject
+    BundleContentHelper bundleHelper;
+
+    @Inject
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
+
+    @Inject
+    private VirtualDBMethodOutcomeFactory virtualDBMethodOutcomeFactory;
 
     public PersistenceServiceBase() {
         super();
@@ -59,7 +67,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
     abstract protected String specifyPersistenceServiceName();
     abstract protected String specifyPersistenceServiceVersion();
     abstract protected Logger getLogger();
-    abstract protected IGenericClient getClient();
+    abstract protected PegacornInternalFHIRClientServices getFHIRClientServices();
     abstract protected Identifier getBestIdentifier(MethodOutcome outcome);
     abstract public VirtualDBMethodOutcome synchroniseResource(ResourceType resourceType, Resource resource);
 
@@ -87,7 +95,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
     public VirtualDBMethodOutcome getResourceById(String resourceType, IdType id){
         getLogger().debug(".standardReviewResource(): Entry, identifier --> {}", id);
         // Attempt to "get" the Resource
-        Resource outputResource = (Resource)getClient()
+        Resource outputResource = (Resource)getFHIRClientServices().getClient()
                 .read()
                 .resource(resourceType)
                 .withId(id)
@@ -142,7 +150,7 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
 
     public VirtualDBMethodOutcome standardCreateResource(Resource resourceToCreate) {
         getLogger().debug(".standardCreateResource(): Entry, resourceToCreate --> {}", resourceToCreate);
-        MethodOutcome callOutcome = getClient()
+        MethodOutcome callOutcome = getFHIRClientServices().getClient()
                 .create()
                 .resource(resourceToCreate)
                 .prettyPrint()
@@ -159,96 +167,48 @@ public abstract class PersistenceServiceBase extends GenericSTAClientWUPTemplate
 
     public VirtualDBMethodOutcome standardReviewResource(Class <? extends IBaseResource> resourceClass, Identifier identifier){
         getLogger().debug(".standardReviewResource(): Entry, identifier --> {}", identifier);
-        Bundle outputBundle = getClient()
-                .search()
-                .forResource(resourceClass)
-                .where(Patient.IDENTIFIER.exactly().systemAndValues(identifier.getSystem(), identifier.getValue()))
-                .returnBundle(Bundle.class)
-                .execute();
-        boolean hasOutcome = (outputBundle != null);
-        if(hasOutcome){
-            hasOutcome = (outputBundle.getTotal() > 0);
-        }
-        if(!hasOutcome){
-            // There was no Resource with that Identifier....
-            VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
-            outcome.setCreated(false);
-            outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
-            outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
-            CodeableConcept details = new CodeableConcept();
-            Coding detailsCoding = new Coding();
-            detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-            detailsCoding.setCode("MSG_NO_MATCH");
-            detailsCoding.setDisplay("No Resource found matching the query: " + identifier);
-            details.setText("No Resource found matching the query: " + identifier);
-            details.addCoding(detailsCoding);
-            OperationOutcome opOutcome = new OperationOutcome();
-            OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-            newOutcomeComponent.setDiagnostics("standardReviewResource()" + "::" + "REVIEW");
-            newOutcomeComponent.setDetails(details);
-            newOutcomeComponent.setCode(OperationOutcome.IssueType.NOTFOUND);
-            newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.WARNING);
-            opOutcome.addIssue(newOutcomeComponent);
-            outcome.setOperationOutcome(opOutcome);
-            outcome.setIdentifier(identifier);
-            return(outcome);
-        }
-        if(outputBundle.getTotal() > 1){
-            // There should only be one!
-            VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
-            outcome.setCreated(false);
-            outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
-            outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
-            CodeableConcept details = new CodeableConcept();
-            Coding detailsCoding = new Coding();
-            detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-            detailsCoding.setCode("MSG_MULTIPLE_MATCH");
-            detailsCoding.setDisplay("Multiple Resources found matching the query: " + identifier);
-            details.setText("Multiple Resources found matching the query: " + identifier);
-            details.addCoding(detailsCoding);
-            OperationOutcome opOutcome = new OperationOutcome();
-            OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-            newOutcomeComponent.setDiagnostics("standardReviewResource()" + "::" + "REVIEW");
-            newOutcomeComponent.setDetails(details);
-            newOutcomeComponent.setCode(OperationOutcome.IssueType.MULTIPLEMATCHES);
-            newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.ERROR);
-            opOutcome.addIssue(newOutcomeComponent);
-            outcome.setOperationOutcome(opOutcome);
-            outcome.setIdentifier(identifier);
-            return(outcome);
-        }
-        // There is only be one!
-        Bundle.BundleEntryComponent bundleEntry = outputBundle.getEntryFirstRep();
-        Resource retrievedResource = bundleEntry.getResource();
-        VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
-        outcome.setCreated(false);
-        outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
-        outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FINISH);
-        CodeableConcept details = new CodeableConcept();
-        Coding detailsCoding = new Coding();
-        detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html"); // TODO Pegacorn specific encoding --> need to check validity
-        detailsCoding.setCode("MSG_RESOURCE_RETRIEVED"); // TODO Pegacorn specific encoding --> need to check validity
-        detailsCoding.setDisplay("Resource Id ("+ identifier +") has been retrieved");
-        details.setText("Resource Id ("+ identifier +") has been retrieved");
-        details.addCoding(detailsCoding);
-        OperationOutcome opOutcome = new OperationOutcome();
-        OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-        newOutcomeComponent.setDiagnostics("standardReviewResource()" + "::" + "REVIEW");
-        newOutcomeComponent.setDetails(details);
-        newOutcomeComponent.setCode(OperationOutcome.IssueType.INFORMATIONAL);
-        newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
-        opOutcome.addIssue(newOutcomeComponent);
-        outcome.setOperationOutcome(opOutcome);
-        outcome.setResource(retrievedResource);
-        outcome.setId(retrievedResource.getIdElement());
-        outcome.setIdentifier(identifier);
-        getLogger().debug(".standardReviewResource(): Exit, outcome --> {}", outcome);
+        VirtualDBMethodOutcome outcome = standardGetResourceViaIdentifier(resourceClass, identifier);
         return(outcome);
+    }
+
+    /**
+     *
+     * @param resourceClass
+     * @param identifier
+     * @return
+     */
+
+    public VirtualDBMethodOutcome standardGetResourceViaIdentifier(Class <? extends IBaseResource> resourceClass, Identifier identifier){
+        getLogger().debug(".standardGetResourceViaIdentifier(): Entry, identifier --> {}", identifier);
+        if(getLogger().isDebugEnabled()) {
+            getLogger().debug(".standardGetResourceViaIdentifier(): Entry identifier.type.system --> {}", identifier.getType().getCodingFirstRep().getSystem());
+            getLogger().debug(".standardGetResourceViaIdentifier(): Entry, identifier.type.code --> {}", identifier.getType().getCodingFirstRep().getCode());
+            getLogger().debug(".standardGetResourceViaIdentifier(): Entry, identifier.value --> {}", identifier.getValue());
+        }
+        String activityLocation = resourceClass.getSimpleName() + "SoTResourceConduit::standardGetResourceViaIdentifier()";
+        Resource retrievedResource = (Resource)getFHIRClientServices().findResourceByIdentifier(resourceClass.getSimpleName(), identifier);
+        if (retrievedResource == null){
+            // There was no response to the query or it was in error....
+            getLogger().trace(".standardGetResourceViaIdentifier(): There was no response to the query or it was in error....");
+            VirtualDBMethodOutcome outcome = virtualDBMethodOutcomeFactory.createResourceActivityOutcome(null,VirtualDBActionStatusEnum.REVIEW_FAILURE,activityLocation);
+            outcome.setIdentifier(identifier);
+            return(outcome);
+        } else {
+            getLogger().trace(".standardGetResourceViaIdentifier(): There is a Resource with that Identifier....");
+            VirtualDBMethodOutcome outcome = virtualDBMethodOutcomeFactory.createResourceActivityOutcome(
+                    null,
+                    VirtualDBActionStatusEnum.REVIEW_FINISH,
+                    activityLocation);
+            outcome.setIdentifier(identifier);
+            outcome.setResource(retrievedResource);
+            getLogger().debug(".standardGetResourceViaIdentifier(): Exit, outcome --> {}", outcome);
+            return (outcome);
+        }
     }
 
     public VirtualDBMethodOutcome standardUpdateResource(Resource resourceToUpdate) {
         getLogger().debug(".standardUpdateResource(): Entry, resourceToUpdate --> {}", resourceToUpdate);
-        MethodOutcome callOutcome = getClient()
+        MethodOutcome callOutcome = getFHIRClientServices().getClient()
                 .update()
                 .resource(resourceToUpdate)
                 .prettyPrint()

@@ -21,22 +21,27 @@
  */
 package net.fhirfactory.pegacorn.ladon.virtualdb.engine.common;
 
-import net.fhirfactory.pegacorn.ladon.mdr.conduit.common.ResourceSoTConduitController;
+import net.fhirfactory.pegacorn.ladon.mdr.conduit.controller.common.ResourceSoTConduitController;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.ResourceDBEngineInterface;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
-import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionTypeEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
+import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcomeFactory;
+import net.fhirfactory.pegacorn.ladon.model.virtualdb.searches.SearchNameEnum;
 import net.fhirfactory.pegacorn.ladon.virtualdb.cache.common.VirtualDBIdTypeBasedCacheBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.persistence.common.PersistenceServiceBase;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
+
+    @Inject
+    private VirtualDBMethodOutcomeFactory outcomeFactory;
 
     abstract protected VirtualDBIdTypeBasedCacheBase specifyDBCache();
 
@@ -72,7 +77,7 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
         if(!resourceToCreate.hasId()){
             getLogger().trace(".createResource(): Resource did not have an Id, so creating one!");
             newId = new IdType();
-            newId.setValueAsString(resourceToCreate.getResourceType().getPath()+"/"+UUID.randomUUID().toString());
+            newId.setValueAsString(resourceToCreate.getResourceType().toString()+"/"+UUID.randomUUID().toString());
             resourceToCreate.setId(newId);
             getLogger().trace(".createResource(): Resource Id created and added to Resource, Id --> {}", newId);
         } else {
@@ -93,33 +98,21 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
     }
 
     @Override
-    public VirtualDBMethodOutcome getResource(Identifier identifier) {
-        getLogger().trace(".getResource(): Entry");
-        VirtualDBMethodOutcome outcome = getDBCache().getResource(identifier);
-        if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE) {
-            getLogger().trace(".getResource(): Resource not in Cache, going to Sources-of-Truth");
-            outcome = getSourceOfTruthAggregator().reviewResource(identifier);
-        }
-        getLogger().trace(".getResource(): Exit");
-        return (outcome);
-    }
-
-    @Override
     public VirtualDBMethodOutcome getResource(IdType id){
         VirtualDBMethodOutcome outcome = getDBCache().getResource(id);
         if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FAILURE){
-            VirtualDBMethodOutcome persistenceServiceOutcome = getPersistenceService().getResourceById(getResourceType().getPath(), id);
+            VirtualDBMethodOutcome persistenceServiceOutcome = getPersistenceService().getResourceById(getResourceType().toString(), id);
             if(persistenceServiceOutcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
                 Resource persistenceServiceOriginatedResource = (Resource)persistenceServiceOutcome.getResource();
                 List<Identifier> identifierList = resolveIdentifierSet(persistenceServiceOriginatedResource);
                 if(identifierList.isEmpty()) {
-                    outcome = generateEmptyGetResponse(id);
+                    outcome = outcomeFactory.generateEmptyGetResponse(getResourceType(), id);
                 } else {
                     outcome = getSourceOfTruthAggregator().reviewResource(identifierList);
                 }
                 return (outcome);
             } else {
-                outcome = generateEmptyGetResponse(id);
+                outcome = outcomeFactory.generateEmptyGetResponse(getResourceType(), id);
                 return(outcome);
             }
         } else {
@@ -143,20 +136,6 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
         return (outcome);
     }
 
-    @Override
-    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Property attributeName, Element attributeValue) {
-        VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().getResourcesViaSearchCriteria(resourceType, attributeName, attributeValue);
-        updateCache(outcome);
-        return(outcome);
-    }
-
-    @Override
-    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, Map<Property, Serializable> parameterSet) {
-        VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().getResourcesViaSearchCriteria(resourceType, parameterSet);
-        updateCache(outcome);
-        return(outcome);
-    }
-
     private void updateCache(VirtualDBMethodOutcome outcome){
         if(outcome.getStatusEnum() != VirtualDBActionStatusEnum.SEARCH_FINISHED) {
             return;
@@ -173,27 +152,29 @@ public abstract class ResourceDBEngine implements ResourceDBEngineInterface {
         }
     }
 
-    private VirtualDBMethodOutcome generateEmptyGetResponse(IdType id){
-        VirtualDBMethodOutcome outcome = new VirtualDBMethodOutcome();
-        outcome.setCreated(false);
-        outcome.setCausalAction(VirtualDBActionTypeEnum.REVIEW);
-        outcome.setStatusEnum(VirtualDBActionStatusEnum.REVIEW_FAILURE);
-        CodeableConcept details = new CodeableConcept();
-        Coding detailsCoding = new Coding();
-        detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-        detailsCoding.setCode("MSG_NO_EXIST");
-        String text = "Resource Id " + id.toString() + " does not exist";
-        detailsCoding.setDisplay(text);
-        details.setText(text);
-        details.addCoding(detailsCoding);
-        OperationOutcome opOutcome = new OperationOutcome();
-        OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-        newOutcomeComponent.setDiagnostics(getResourceType().getPath());
-        newOutcomeComponent.setDetails(details);
-        newOutcomeComponent.setCode(OperationOutcome.IssueType.NOTFOUND);
-        newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.WARNING);
-        opOutcome.addIssue(newOutcomeComponent);
-        outcome.setOperationOutcome(opOutcome);
+    //
+    //
+    // Searches
+    //
+    //
+
+    public VirtualDBMethodOutcome findResourceViaIdentifier(Identifier identifier) {
+        getLogger().debug(".findResourceViaIdentifier(): Entry");
+        VirtualDBMethodOutcome outcome = getDBCache().getResource(identifier);
+        if (outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_RESOURCE_NOT_IN_CACHE) {
+            getLogger().trace(".getResource(): Resource not in Cache, going to Sources-of-Truth");
+            outcome = getSourceOfTruthAggregator().reviewResource(identifier);
+        }
+        getLogger().debug(".findResourceViaIdentifier(): Exit");
+        return (outcome);
+    }
+
+    @Override
+    public VirtualDBMethodOutcome getResourcesViaSearchCriteria(ResourceType resourceType, SearchNameEnum searchName, Map<Property, Serializable> parameterSet) {
+        getLogger().debug(".getResourcesViaSearchCriteria(): Entry, ResourceType --> {}, Search Name --> {}", resourceType.toString(), searchName.getSearchName());
+        VirtualDBMethodOutcome outcome = getSourceOfTruthAggregator().getResourcesViaSearchCriteria(resourceType, searchName, parameterSet);
+        updateCache(outcome);
+        getLogger().debug(".getResourcesViaSearchCriteria(): Exit");
         return(outcome);
     }
 }

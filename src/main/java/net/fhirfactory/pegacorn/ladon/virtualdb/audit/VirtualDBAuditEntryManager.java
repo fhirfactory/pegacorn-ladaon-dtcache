@@ -22,26 +22,20 @@
 package net.fhirfactory.pegacorn.ladon.virtualdb.audit;
 
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.fhirfactory.pegacorn.common.model.FDN;
 import net.fhirfactory.pegacorn.common.model.RDN;
 import net.fhirfactory.pegacorn.datasets.fhir.r4.internal.topics.FHIRElementTopicIDBuilder;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionTypeEnum;
 import net.fhirfactory.pegacorn.petasos.audit.model.PetasosParcelAuditTrailEntry;
 import net.fhirfactory.pegacorn.petasos.core.sta.brokers.PetasosSTAServicesAuditOnlyBroker;
-import net.fhirfactory.pegacorn.petasos.model.keys.ResourceKey;
 import net.fhirfactory.pegacorn.petasos.model.topics.TopicToken;
 import net.fhirfactory.pegacorn.petasos.model.topics.TopicTypeEnum;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoW;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWPayload;
 import net.fhirfactory.pegacorn.petasos.model.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.petasos.model.wup.WUPIdentifier;
-import net.fhirfactory.pegacorn.util.FhirUtil;
-import org.hl7.fhir.r4.model.DomainResource;
-import org.hl7.fhir.r4.model.Identifier;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +48,10 @@ public class VirtualDBAuditEntryManager {
     private static final Logger LOG = LoggerFactory.getLogger(VirtualDBAuditEntryManager.class);
 
     private static final String FHIR_VERSION = "4.0.1";
-
+    
+    @Inject 
+    private FHIRContextUtility FHIRContextUtility;
+    
     private IParser parserR4;
 
     @Inject
@@ -66,7 +63,7 @@ public class VirtualDBAuditEntryManager {
     @PostConstruct
     protected void initialise() {
         LOG.debug(".initialise(): Entry");
-        this.parserR4 = FhirUtil.getInstance().getJsonParser();
+        this.parserR4 = FHIRContextUtility.getJsonParser();
         LOG.debug(".initialise(): Exit");
     }
 
@@ -173,7 +170,9 @@ public class VirtualDBAuditEntryManager {
                     break;
             }
             if(fhirResource != null) {
-                auditTrailPayload = auditTrailPayload + parserR4.encodeResourceToString(fhirResource);
+                LOG.trace(".endTransaction(): fhirResource.type --> {}", fhirResource.getResourceType());
+                if(parserR4 == null) {LOG.error("Warning Will Robinson!!!!");}
+                auditTrailPayload = auditTrailPayload  + parserR4.encodeResourceToString(fhirResource);
             } else {
                 auditTrailPayload = auditTrailPayload + auditEntryString;
             }

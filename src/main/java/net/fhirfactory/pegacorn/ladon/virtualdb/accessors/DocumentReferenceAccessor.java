@@ -22,12 +22,10 @@
 package net.fhirfactory.pegacorn.ladon.virtualdb.accessors;
 
 import ca.uhn.fhir.parser.IParser;
-import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
-import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.virtualdb.accessors.common.AccessorBase;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.DocumentReferenceDBEngine;
 import net.fhirfactory.pegacorn.ladon.virtualdb.engine.common.ResourceDBEngine;
-import net.fhirfactory.pegacorn.util.FhirUtil;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Resource;
@@ -47,6 +45,9 @@ public class DocumentReferenceAccessor extends AccessorBase {
 
     @Inject
     DocumentReferenceDBEngine documentReferenceDBEngine;
+    
+    @Inject 
+    private FHIRContextUtility FHIRContextUtility;
 
     public DocumentReferenceAccessor(){
         super();
@@ -76,8 +77,7 @@ public class DocumentReferenceAccessor extends AccessorBase {
             return(singleMasterIdentifierList);
         }
         if(LOG.isDebugEnabled()){
-            FhirUtil fhirUtil = FhirUtil.getInstance();
-            IParser jsonParser = fhirUtil.getJsonParser().setPrettyPrint(true);
+            IParser jsonParser = FHIRContextUtility.getJsonParser().setPrettyPrint(true);
             String resourceString = jsonParser.encodeResourceToString(docRef);
             LOG.debug(".resolveIdentifierList(): Resource --> {}", resourceString);
         }
@@ -100,21 +100,4 @@ public class DocumentReferenceAccessor extends AccessorBase {
     protected Logger getLogger() {
         return (LOG);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The DocumentReference resource associated within the identifier.
-     */
-    public DocumentReference getDocumentReference(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            DocumentReference retrievedDocumentReference = (DocumentReference)outcome.getResource();
-            return(retrievedDocumentReference);
-        }
-        return(null);
-    }
-
 }

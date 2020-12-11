@@ -26,6 +26,7 @@ import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBAction
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionTypeEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.businesskey.VirtualDBKeyManagement;
+import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcomeFactory;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 
@@ -40,6 +41,9 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
 
     @Inject
     private VirtualDBKeyManagement virtualDBKeyManagement;
+
+    @Inject
+    private VirtualDBMethodOutcomeFactory outcomeFactory;
 
     private ConcurrentHashMap<IdType, CacheResourceEntry> resourceCacheById;
     private ConcurrentHashMap<IdType, Object> resourceCacheLockSet;
@@ -80,10 +84,10 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
         // Perform house-keeping on the Cache
         purgeResourcesFromCache();
         // House-keeping done
-
+        String activityLocation = getCacheClassName() + "::addResourceToCache()";
         if(resourceToAdd == null) {
             getLogger().error(".addResourceToCache(): resourceToAdd (Resource) is null, failing out");
-            VirtualDBMethodOutcome vdbOutcome = generateBadAttributeOutcome("addResourceToCache", VirtualDBActionTypeEnum.CREATE, VirtualDBActionStatusEnum.CREATION_FAILURE, "Parameter resourceToAdd (Resource) content is invalid");
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.generateBadAttributeOutcome(activityLocation, VirtualDBActionTypeEnum.CREATE, VirtualDBActionStatusEnum.CREATION_FAILURE, "Parameter resourceToAdd (Resource) content is invalid");
             return (vdbOutcome);
         }
         IdType resourceId = resourceToAdd.getIdElement();
@@ -97,28 +101,7 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
             if(resourceEntry != null){
                 Resource existingResource = resourceEntry.getResource();
                 if(areTheSame(existingResource, resourceToAdd)){
-                    VirtualDBMethodOutcome vdbOutcome = new VirtualDBMethodOutcome();
-                    vdbOutcome.setId(existingResource.getIdElement());
-                    vdbOutcome.setCreated(false);
-                    vdbOutcome.setResource(existingResource);
-                    vdbOutcome.setCausalAction(VirtualDBActionTypeEnum.CREATE);
-                    vdbOutcome.setStatusEnum(VirtualDBActionStatusEnum.CREATION_NOT_REQUIRED);
-                    OperationOutcome opOutcome = new OperationOutcome();
-                    opOutcome.setId(existingResource.getIdElement());
-                    OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-                    newOutcomeComponent.setCode(OperationOutcome.IssueType.INFORMATIONAL);
-                    newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
-                    CodeableConcept details = new CodeableConcept();
-                    Coding detailsCoding = new Coding();
-                    detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-                    detailsCoding.setCode("MSG_CREATED");
-                    detailsCoding.setDisplay("New Resource Created");
-                    details.setText("New Resource Created");
-                    details.addCoding(detailsCoding);
-                    newOutcomeComponent.setDiagnostics(getCacheClassName()+"::addResourceToCache()");
-                    newOutcomeComponent.setDetails(details);
-                    opOutcome.addIssue(newOutcomeComponent);
-                    vdbOutcome.setOperationOutcome(opOutcome);
+                    VirtualDBMethodOutcome vdbOutcome = outcomeFactory.createResourceActivityOutcome(resourceId, VirtualDBActionStatusEnum.CREATION_NOT_REQUIRED, activityLocation);
                     return(vdbOutcome);
                 }
             }
@@ -128,27 +111,8 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
         resourceCacheLockSet.put(resourceId, new Object());
         CacheResourceEntry newEntry = new CacheResourceEntry(resourceToAdd);
         resourceCacheById.put(resourceId, newEntry);
-        VirtualDBMethodOutcome vdbOutcome = new VirtualDBMethodOutcome();
-        OperationOutcome opOutcome = new OperationOutcome();
-        vdbOutcome.setId(resourceId);
+        VirtualDBMethodOutcome vdbOutcome = outcomeFactory.createResourceActivityOutcome(resourceId, VirtualDBActionStatusEnum.CREATION_FINISH, activityLocation);
         vdbOutcome.setResource(resourceToAdd);
-        vdbOutcome.setCreated(true);
-        vdbOutcome.setStatusEnum(VirtualDBActionStatusEnum.CREATION_FINISH);
-        vdbOutcome.setCausalAction(VirtualDBActionTypeEnum.CREATE);
-        OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-        newOutcomeComponent.setCode(OperationOutcome.IssueType.INFORMATIONAL);
-        newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
-        CodeableConcept details = new CodeableConcept();
-        Coding detailsCoding = new Coding();
-        detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-        detailsCoding.setCode("MSG_CREATED");
-        detailsCoding.setDisplay("New Resource Created");
-        details.setText("New Resource Created");
-        details.addCoding(detailsCoding);
-        newOutcomeComponent.setDiagnostics(getCacheClassName()+"::addResourceToCache()");
-        newOutcomeComponent.setDetails(details);
-        opOutcome.addIssue(newOutcomeComponent);
-        vdbOutcome.setOperationOutcome(opOutcome);
         return(vdbOutcome);
     }
 
@@ -159,57 +123,19 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
      * @return A VirtualDBMethodOutcome instance detailing the success (or otherwise) of the Resource removal activity.
      */
     private VirtualDBMethodOutcome deleteResourceFromCache(IdType id){
+        String activityLocation = getCacheClassName() + "::deleteResourceFromCache()";
         if(id == null){
             getLogger().debug(".deleteResourceFromCache(): id (IdType) is null, failing out");
-            VirtualDBMethodOutcome vdbOutcome = generateBadAttributeOutcome("deleteResourceFromCache", VirtualDBActionTypeEnum.DELETE, VirtualDBActionStatusEnum.DELETE_FAILURE, "Parameter identifier (Identifier) content is invalid");
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.generateBadAttributeOutcome(activityLocation, VirtualDBActionTypeEnum.DELETE, VirtualDBActionStatusEnum.DELETE_FAILURE, "Parameter identifier (Identifier) content is invalid");
             return(vdbOutcome);
         }
         if(resourceCacheById.containsKey(id)) {
             resourceCacheById.remove(id);
             resourceCacheLockSet.remove(id);
-            VirtualDBMethodOutcome vdbOutcome = new VirtualDBMethodOutcome();
-            vdbOutcome.setCreated(false);
-            vdbOutcome.setId(id);
-            vdbOutcome.setCausalAction(VirtualDBActionTypeEnum.DELETE);
-            vdbOutcome.setStatusEnum(VirtualDBActionStatusEnum.DELETE_FINISH);
-            OperationOutcome opOutcome = new OperationOutcome();
-            OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-            newOutcomeComponent.setCode(OperationOutcome.IssueType.DELETED);
-            newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
-            CodeableConcept details = new CodeableConcept();
-            Coding detailsCoding = new Coding();
-            detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-            detailsCoding.setCode("MSG_DELETED");
-            detailsCoding.setDisplay("This resource has been deleted");
-            details.setText("This resource has been deleted");
-            details.addCoding(detailsCoding);
-            newOutcomeComponent.setDiagnostics(getCacheClassName() + "::deleteResourceFromCache()");
-            newOutcomeComponent.setDetails(details);
-            opOutcome.addIssue(newOutcomeComponent);
-            vdbOutcome.setOperationOutcome(opOutcome);
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.createResourceActivityOutcome(id, VirtualDBActionStatusEnum.DELETE_FINISH, activityLocation);
             return (vdbOutcome);
         } else {
-            VirtualDBMethodOutcome vdbOutcome = new VirtualDBMethodOutcome();
-            vdbOutcome.setCreated(false);
-            vdbOutcome.setId(id);
-            vdbOutcome.setCausalAction(VirtualDBActionTypeEnum.DELETE);
-            vdbOutcome.setStatusEnum(VirtualDBActionStatusEnum.DELETE_FAILURE);
-            OperationOutcome opOutcome = new OperationOutcome();
-            OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-            newOutcomeComponent.setCode(OperationOutcome.IssueType.NOTFOUND);
-            newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
-            CodeableConcept details = new CodeableConcept();
-            Coding detailsCoding = new Coding();
-            detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-            detailsCoding.setCode("MSG_NO_MATCH");
-            String text = "No Resource found matching the query: " + id;
-            detailsCoding.setDisplay(text);
-            details.setText(text);
-            details.addCoding(detailsCoding);
-            newOutcomeComponent.setDiagnostics(getCacheClassName() + "::deleteResourceFromCache()");
-            newOutcomeComponent.setDetails(details);
-            opOutcome.addIssue(newOutcomeComponent);
-            vdbOutcome.setOperationOutcome(opOutcome);
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.createResourceActivityOutcome(id, VirtualDBActionStatusEnum.DELETE_FAILURE, activityLocation);
             return (vdbOutcome);
         }
     }
@@ -221,9 +147,10 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
      */
     private VirtualDBMethodOutcome getResourceFromCache(Identifier identifier){
         getLogger().debug(".getResourceFromCache(): Entry, identifier (Identifier) --> {}", identifier);
+        String activityLocation = getCacheClassName() + "::getResourceFromCache()";
         if(identifier == null){
             getLogger().error(".getResourceFromCache(): identifier (Identifier) is null, failing out");
-            VirtualDBMethodOutcome vdbOutcome = generateBadAttributeOutcome("getResourceFromCache", VirtualDBActionTypeEnum.REVIEW, VirtualDBActionStatusEnum.REVIEW_FAILURE, "Parameter identifier (Identifier) content is invalid");
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.generateBadAttributeOutcome(activityLocation, VirtualDBActionTypeEnum.REVIEW, VirtualDBActionStatusEnum.REVIEW_FAILURE, "Parameter identifier (Identifier) content is invalid");
             return(vdbOutcome);
         }
         CacheResourceEntry foundResourceEntry = null;
@@ -300,9 +227,10 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
      */
     private VirtualDBMethodOutcome getResourceFromCache(IdType id) {
         getLogger().debug(".getResourceFromCache(): Entry, id (IdType) --> {}", id);
+        String activityLocation = getCacheClassName() + "::getResourceFromCache()";
         if (id == null) {
             getLogger().error(".getResourceFromCache(): identifier (Identifier) is null, failing out");
-            VirtualDBMethodOutcome vdbOutcome = generateBadAttributeOutcome("getResourceFromCache", VirtualDBActionTypeEnum.REVIEW, VirtualDBActionStatusEnum.REVIEW_FAILURE, "Parameter identifier (Identifier) content is invalid");
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.generateBadAttributeOutcome(activityLocation, VirtualDBActionTypeEnum.REVIEW, VirtualDBActionStatusEnum.REVIEW_FAILURE, "Parameter identifier (Identifier) content is invalid");
             return (vdbOutcome);
         }
         if(resourceCacheById.containsKey(id)){
@@ -322,7 +250,7 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
             detailsCoding.setDisplay("Resource Id ("+ id +") does not exist");
             details.setText("Resource Id ("+ id +") does not exist");
             details.addCoding(detailsCoding);
-            newOutcomeComponent.setDiagnostics(getCacheClassName() + "::getResourceFromCache()");
+            newOutcomeComponent.setDiagnostics(activityLocation);
             newOutcomeComponent.setDetails(details);
             opOutcome.addIssue(newOutcomeComponent);
             vdbOutcome.setOperationOutcome(opOutcome);
@@ -389,33 +317,6 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
             }
         }
         getLogger().debug(".purgeResourcesFromCache(): Exit");
-    }
-
-    //
-    // Shared Methods
-    //
-
-    private VirtualDBMethodOutcome generateBadAttributeOutcome(String method, VirtualDBActionTypeEnum action, VirtualDBActionStatusEnum actionStatus, String text){
-        VirtualDBMethodOutcome vdbOutcome = new VirtualDBMethodOutcome();
-        vdbOutcome.setCreated(false);
-        vdbOutcome.setCausalAction(action);
-        vdbOutcome.setStatusEnum(actionStatus);
-        CodeableConcept details = new CodeableConcept();
-        Coding detailsCoding = new Coding();
-        detailsCoding.setSystem("https://www.hl7.org/fhir/codesystem-operation-outcome.html");
-        detailsCoding.setCode("MSG_PARAM_INVALID");
-        detailsCoding.setDisplay(text);
-        details.setText(text);
-        details.addCoding(detailsCoding);
-        OperationOutcome opOutcome = new OperationOutcome();
-        OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-        newOutcomeComponent.setDiagnostics(getCacheClassName() + "::" + method);
-        newOutcomeComponent.setDetails(details);
-        newOutcomeComponent.setCode(OperationOutcome.IssueType.INVALID);
-        newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.ERROR);
-        opOutcome.addIssue(newOutcomeComponent);
-        vdbOutcome.setOperationOutcome(opOutcome);
-        return(vdbOutcome);
     }
 
     /**
@@ -492,8 +393,9 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
     }
 
     public VirtualDBMethodOutcome syncResource(Resource resourceToSync){
+        String activityLocation = getCacheClassName() + "::" + "syncResource()";
         if(resourceToSync == null){
-            VirtualDBMethodOutcome vdbOutcome = generateBadAttributeOutcome("syncResource", VirtualDBActionTypeEnum.SYNC, VirtualDBActionStatusEnum.SYNC_FAILURE, "Parameter resourceToSync (Resource) content is invalid");
+            VirtualDBMethodOutcome vdbOutcome = outcomeFactory.generateBadAttributeOutcome(activityLocation, VirtualDBActionTypeEnum.SYNC, VirtualDBActionStatusEnum.SYNC_FAILURE, "Parameter resourceToSync (Resource) content is invalid");
             return(vdbOutcome);
         }
         if(!resourceToSync.hasId()){
@@ -527,7 +429,7 @@ public abstract class VirtualDBIdTypeBasedCacheBase {
             details.addCoding(detailsCoding);
             OperationOutcome opOutcome = new OperationOutcome();
             OperationOutcome.OperationOutcomeIssueComponent newOutcomeComponent = new OperationOutcome.OperationOutcomeIssueComponent();
-            newOutcomeComponent.setDiagnostics(getCacheClassName() + "::" + "syncResource()");
+            newOutcomeComponent.setDiagnostics(activityLocation);
             newOutcomeComponent.setDetails(details);
             newOutcomeComponent.setCode(OperationOutcome.IssueType.INFORMATIONAL);
             newOutcomeComponent.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);

@@ -83,20 +83,4 @@ public class HealthcareServiceAccessor extends AccessorBase {
         List<Identifier> identifierList = res.getIdentifier();
         return(identifierList);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The HealthcareService resource associated within the identifier.
-     */
-    public HealthcareService getHealthcareService(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            HealthcareService retrievedHealthcareService = (HealthcareService)outcome.getResource();
-            return(retrievedHealthcareService);
-        }
-        return(null);
-    }
 }

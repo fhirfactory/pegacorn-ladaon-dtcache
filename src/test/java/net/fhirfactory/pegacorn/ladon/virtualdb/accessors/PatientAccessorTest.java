@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBActionStatusEnum;
 import net.fhirfactory.pegacorn.ladon.model.virtualdb.operations.VirtualDBMethodOutcome;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.fhir.parser.IParser;
 import net.fhirfactory.pegacorn.deployment.topology.map.standalone.StandaloneSampleDeploymentSolution;
 import net.fhirfactory.pegacorn.fhir.r4.samples.PatientSetFactory;
-import net.fhirfactory.pegacorn.util.FhirUtil;
+import net.fhirfactory.pegacorn.util.FHIRContextUtility;
 
 @RunWith(Arquillian.class)
 public class PatientAccessorTest {
@@ -46,6 +45,9 @@ public class PatientAccessorTest {
 
     @Inject
     PatientSetFactory patientSet;
+    
+    @Inject
+    private FHIRContextUtility FHIRContextUtility;
 
     @Inject
     StandaloneSampleDeploymentSolution sampleSolution;
@@ -108,10 +110,11 @@ public class PatientAccessorTest {
             }
         }
         boolean testSuccess = true;
-        IParser parserR4 = FhirUtil.getInstance().getJsonParser();
+        IParser parserR4 = FHIRContextUtility.getJsonParser();
         int counter = 0;
         for (Identifier patientId : patientIdSet) {
-            Patient retrievedPatient = patientAccessor.getPatient(patientId);
+            VirtualDBMethodOutcome outcome = patientAccessor.findResourceViaIdentifier(patientId);
+            Patient retrievedPatient = (Patient)outcome.getResource();
             if (LOG.isTraceEnabled()) {
                 String retrievedPatientAsString = parserR4.encodeResourceToString(retrievedPatient);
                 LOG.trace(".addPatientResourceAndRetrieve(): Retrieved Patient [{}] --> {}", counter, retrievedPatientAsString);
@@ -124,7 +127,8 @@ public class PatientAccessorTest {
         }
         for (Identifier patientIdentifier : patientIdSet) {
             LOG.trace(".addPatientResourceAndRetrieve(): Attempting to retrieve Patient --> {}", patientIdentifier);
-            Patient retrievedPatient = patientAccessor.getPatient(patientIdentifier);
+            VirtualDBMethodOutcome outcome = patientAccessor.findResourceViaIdentifier(patientIdentifier);
+            Patient retrievedPatient = (Patient)outcome.getResource();
             if(retrievedPatient != null){
                 assertTrue(false);
             }

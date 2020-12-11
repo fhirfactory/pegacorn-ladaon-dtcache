@@ -83,20 +83,4 @@ public class CareTeamAccessor extends AccessorBase {
         List<Identifier> identifierList = careTeam.getIdentifier();
         return(identifierList);
     }
-
-    /**
-     * This function is (primarily) used by the StateSpace framework to rapidly, and without an audit-trail,
-     * access the specific Resource.
-     *
-     * @param identifier
-     * @return The CareTeam resource associated within the identifier.
-     */
-    public CareTeam getCareTeam(Identifier identifier){
-        VirtualDBMethodOutcome outcome = getResourceNoAudit(identifier);
-        if(outcome.getStatusEnum() == VirtualDBActionStatusEnum.REVIEW_FINISH){
-            CareTeam retrievedCareTeam = (CareTeam)outcome.getResource();
-            return(retrievedCareTeam);
-        }
-        return(null);
-    }
 }
