@@ -40,7 +40,7 @@ public class ClinicalDiagnosticsPersistenceServerSecureAccessor extends Pegacorn
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
-    protected String specifyFHIRServerSubsystemService() {
+    protected String specifyFHIRServerService() {
         return (virtualDBPersistenceNames.getClinicalDiagnosticsVirtualDBPersistenceService());
     }
 

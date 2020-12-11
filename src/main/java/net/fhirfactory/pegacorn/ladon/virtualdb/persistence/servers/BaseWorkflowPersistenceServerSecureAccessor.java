@@ -41,7 +41,7 @@ public class BaseWorkflowPersistenceServerSecureAccessor extends PegacornInterna
     private PegacornLadonVirtualDBPersistenceComponentNames virtualDBPersistenceNames;
 
     @Override
-    protected String specifyFHIRServerSubsystemService() {
+    protected String specifyFHIRServerService() {
         return (virtualDBPersistenceNames.getBaseWorkflowVirtualDBPersistenceService());
     }
 
